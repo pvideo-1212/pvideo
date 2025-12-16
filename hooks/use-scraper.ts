@@ -345,7 +345,7 @@ export function useVideoDetail(id: string) {
   return state
 }
 
-// Hook for recommended videos
+// Hook for recommended videos - dynamic with random ordering
 export function useRecommendedVideos(currentVideoId: string, categories?: string[]) {
   const [videos, setVideos] = useState<VideoItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -354,18 +354,39 @@ export function useRecommendedVideos(currentVideoId: string, categories?: string
     const loadRecommended = async () => {
       setLoading(true)
 
-      const category = categories?.[0] || 'all'
-      const result = await fetchVideos(category, 1, 'top-weekly')
+      try {
+        // Use first category or try different popular categories
+        const fallbackCategories = ['trending', 'popular', 'new', 'top']
+        const category = categories?.[0] || fallbackCategories[Math.floor(Math.random() * fallbackCategories.length)]
 
-      if (result) {
-        const filtered = result.videos.filter((v: VideoItem) => v.id !== currentVideoId).slice(0, 12)
-        setVideos(filtered)
+        // Randomize page and order for variety
+        const orders = ['top-weekly', 'top-monthly', 'latest', 'most-popular']
+        const randomOrder = orders[Math.floor(Math.random() * orders.length)]
+        const randomPage = Math.floor(Math.random() * 5) + 1 // Pages 1-5
+
+        const result = await fetchVideos(category, randomPage, randomOrder)
+
+        if (result?.videos) {
+          // Filter out current video and shuffle
+          const filtered = result.videos
+            .filter((v: VideoItem) => v?.id && v.id !== currentVideoId)
+            .sort(() => Math.random() - 0.5) // Shuffle
+            .slice(0, 12)
+          setVideos(filtered)
+        } else {
+          setVideos([])
+        }
+      } catch (error) {
+        console.error('[Recommended] Error loading:', error)
+        setVideos([])
       }
 
       setLoading(false)
     }
 
-    loadRecommended()
+    if (currentVideoId) {
+      loadRecommended()
+    }
   }, [currentVideoId, categories])
 
   return { videos, loading }
