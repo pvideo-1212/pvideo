@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel } from '@/hooks/use-scraper'
 import SiteFooter from '@/components/site-footer'
-import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown } from 'lucide-react'
+import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
 
 // Video Card with native img for better performance
 function VideoCard({ video }: { video: any }) {
@@ -180,89 +180,101 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Premium Header */}
-      <header className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-[#1f1f1f]">
-        <div className="max-w-[1600px] mx-auto px-4">
-          <div className="flex items-center h-16 gap-3">
-            {/* Logo */}
-            <Link href="/" onClick={() => handleSelect('category', null)} className="flex items-center shrink-0">
-              <span className="text-2xl font-extrabold text-white tracking-tight">Porn</span>
-              <span className="text-2xl font-extrabold bg-[#FF9000] text-black px-2 py-0.5 rounded ml-0.5 tracking-tight">hub</span>
-            </Link>
 
-            {/* Navigation - Desktop */}
-            <nav className="hidden md:flex items-center gap-1 ml-6">
-              <button onClick={() => handleViewMode(null)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!viewMode && !selectedCategory && !selectedChannel && !selectedModel && !searchQuery ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                <HomeIcon className="w-4 h-4 inline mr-1.5" />Home
-              </button>
-              <button onClick={() => handleViewMode('categories')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'categories' ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                <Grid3X3 className="w-4 h-4 inline mr-1.5" />Categories
-              </button>
-              <button onClick={() => handleViewMode('channels')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'channels' ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                <Tv className="w-4 h-4 inline mr-1.5" />Channels
-              </button>
-              <Link href="/pornstars"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                <User className="w-4 h-4 inline mr-1.5" />Pornstars
-              </Link>
-            </nav>
-
-            {/* Search Bar - Flexible */}
-            <div className="flex-1 max-w-lg ml-auto">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search videos..."
-                  className="w-full pl-11 pr-10 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000] focus:ring-1 focus:ring-[#FF9000]/30 transition-all"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+      {/* Sticky Header Container with VPN Banner */}
+      <div className="sticky top-0 z-50">
+        {/* VPN Banner - Always visible */}
+        <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-2 px-4">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-2 text-sm font-medium">
+            <Shield className="w-4 h-4" />
+            <span>🔒 Use a VPN for better experience and privacy</span>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0a0a0a] border-t border-[#1f1f1f] py-2 px-4">
-            <nav className="flex flex-col gap-1">
-              <button onClick={() => handleViewMode(null)}
-                className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
-                <HomeIcon className="w-4 h-4" />Home
-              </button>
-              <button onClick={() => handleViewMode('categories')}
-                className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
-                <Grid3X3 className="w-4 h-4" />Categories
-              </button>
-              <button onClick={() => handleViewMode('channels')}
-                className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
-                <Tv className="w-4 h-4" />Channels
-              </button>
-              <Link href="/pornstars"
-                className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
-                <User className="w-4 h-4" />Pornstars
+        {/* Premium Header */}
+        <header className="bg-[#0a0a0a]/95 backdrop-blur-md border-b border-[#1f1f1f]">
+          <div className="max-w-[1600px] mx-auto px-4">
+            <div className="flex items-center h-16 gap-3">
+              {/* Logo */}
+              <Link href="/" onClick={() => handleSelect('category', null)} className="flex items-center shrink-0">
+                <span className="text-2xl font-extrabold text-white tracking-tight">Porn</span>
+                <span className="text-2xl font-extrabold bg-[#FF9000] text-black px-2 py-0.5 rounded ml-0.5 tracking-tight">hub</span>
               </Link>
-            </nav>
+
+              {/* Navigation - Desktop */}
+              <nav className="hidden md:flex items-center gap-1 ml-6">
+                <button onClick={() => handleViewMode(null)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!viewMode && !selectedCategory && !selectedChannel && !selectedModel && !searchQuery ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                  <HomeIcon className="w-4 h-4 inline mr-1.5" />Home
+                </button>
+                <button onClick={() => handleViewMode('categories')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'categories' ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                  <Grid3X3 className="w-4 h-4 inline mr-1.5" />Categories
+                </button>
+                <button onClick={() => handleViewMode('channels')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === 'channels' ? 'bg-[#FF9000]/15 text-[#FF9000]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                  <Tv className="w-4 h-4 inline mr-1.5" />Channels
+                </button>
+                <Link href="/pornstars"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                  <User className="w-4 h-4 inline mr-1.5" />Pornstars
+                </Link>
+              </nav>
+
+              {/* Search Bar - Flexible */}
+              <div className="flex-1 max-w-lg ml-auto">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search videos..."
+                    className="w-full pl-11 pr-10 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000] focus:ring-1 focus:ring-[#FF9000]/30 transition-all"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-        )}
-      </header>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden bg-[#0a0a0a] border-t border-[#1f1f1f] py-2 px-4">
+              <nav className="flex flex-col gap-1">
+                <button onClick={() => handleViewMode(null)}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                  <HomeIcon className="w-4 h-4" />Home
+                </button>
+                <button onClick={() => handleViewMode('categories')}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                  <Grid3X3 className="w-4 h-4" />Categories
+                </button>
+                <button onClick={() => handleViewMode('channels')}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                  <Tv className="w-4 h-4" />Channels
+                </button>
+                <Link href="/pornstars"
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                  <User className="w-4 h-4" />Pornstars
+                </Link>
+              </nav>
+            </div>
+          )}
+        </header>
+      </div>
 
       {/* Categories Bar - Horizontal Scroll */}
       <div className="bg-[#0a0a0a] border-b border-[#1f1f1f] sticky top-16 z-40">

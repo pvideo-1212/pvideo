@@ -167,6 +167,18 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-WPKW6YQD4F"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments)}
+            gtag('js', new Date());
+            gtag('config', 'G-WPKW6YQD4F');
+          `}
+        </Script>
 
         {/* Additional SEO Meta Tags */}
         <meta name="geo.region" content="US" />

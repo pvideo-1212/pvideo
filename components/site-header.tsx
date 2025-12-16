@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Search, X, Menu, Home, Grid3X3, Tv, User, Shield } from 'lucide-react'
 
 interface SiteHeaderProps {
@@ -13,20 +13,6 @@ interface SiteHeaderProps {
 export default function SiteHeader({ showSearch = true, searchValue = '', onSearchChange }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [localSearch, setLocalSearch] = useState(searchValue)
-  const [showVpnBanner, setShowVpnBanner] = useState(false)
-
-  useEffect(() => {
-    // Check if banner was dismissed
-    const dismissed = localStorage.getItem('vpn-banner-dismissed')
-    if (!dismissed) {
-      setShowVpnBanner(true)
-    }
-  }, [])
-
-  const dismissBanner = () => {
-    setShowVpnBanner(false)
-    localStorage.setItem('vpn-banner-dismissed', 'true')
-  }
 
   const handleSearch = (value: string) => {
     setLocalSearch(value)
@@ -34,33 +20,17 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
   }
 
   return (
-    <>
-      {/* VPN Banner */}
-      {showVpnBanner && (
-        <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-2 px-4 relative">
-          <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-2 text-sm font-medium">
-            <Shield className="w-4 h-4" />
-            <span>🔒 Use a VPN for better experience and privacy</span>
-            <a
-              href="https://surfshark.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 px-3 py-1 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors"
-            >
-              Get VPN
-            </a>
-            <button
-              onClick={dismissBanner}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-black/10 rounded-full transition-colors"
-              aria-label="Dismiss banner"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="sticky top-0 z-50">
+      {/* VPN Banner - Always visible */}
+      <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-2 px-4">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-2 text-sm font-medium">
+          <Shield className="w-4 h-4" />
+          <span>🔒 Use a VPN for better experience and privacy</span>
 
-      <header className="sticky top-0 z-50 bg-[#0d0d0d]/95 backdrop-blur-md border-b border-[#1f1f1f]">
+        </div>
+      </div>
+
+      <header className="bg-[#0d0d0d]/95 backdrop-blur-md border-b border-[#1f1f1f]">
         <div className="max-w-[1600px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
@@ -153,6 +123,6 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
           </nav>
         </div>
       </header>
-    </>
+    </div>
   )
 }

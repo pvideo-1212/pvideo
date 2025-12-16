@@ -53,36 +53,68 @@ export async function GET(request: NextRequest) {
   const order = searchParams.get('order') || 'top-weekly'
 
   // Build eporner API URL
-  const apiUrl = new URL('https://www.eporner.com/api/v2/video/search/')
-  apiUrl.searchParams.set('query', query)
-  apiUrl.searchParams.set('per_page', perPage)
-  apiUrl.searchParams.set('page', page)
-  apiUrl.searchParams.set('thumbsize', 'big')
-  apiUrl.searchParams.set('order', order)
-  apiUrl.searchParams.set('gay', '1')
-  apiUrl.searchParams.set('lq', '1')
-  apiUrl.searchParams.set('format', 'json')
+  const baseUrl = 'https://www.eporner.com/api/v2/video/search/'
+  const params = new URLSearchParams({
+    query,
+    per_page: perPage,
+    page,
+    thumbsize: 'big',
+    order,
+    gay: '1',
+    lq: '1',
+    format: 'json'
+  })
+
+  const directUrl = `${baseUrl}?${params.toString()}`
+
+  // Multiple proxy fallbacks
+  const proxyUrls = [
+    `https://corsproxy.io/?${encodeURIComponent(directUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}`,
+  ]
 
   console.log('[API] Fetching:', query, 'page:', page)
 
-  try {
-    const response = await fetch(apiUrl.toString(), {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 300 } // Cache for 5 minutes
-    })
+  // Try direct fetch first, fallback to proxies
+  async function tryFetch(url: string, timeout: number): Promise<Response | null> {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json',
+        },
+        signal: AbortSignal.timeout(timeout),
+        cache: 'no-store'
+      })
+      if (response.ok) return response
+    } catch (e) {
+      console.log('[API] Fetch failed:', (e as Error).message?.slice(0, 50))
+    }
+    return null
+  }
 
-    if (!response.ok) {
-      console.error('[API] Error:', response.status)
+  try {
+    // Try direct first (fast timeout for quick fail in blocked regions)
+    let response = await tryFetch(directUrl, 5000)
+
+    // Fallback to CORS proxies if direct fails
+    if (!response) {
+      for (const proxyUrl of proxyUrls) {
+        console.log('[API] Trying proxy fallback...')
+        response = await tryFetch(proxyUrl, 10000)
+        if (response) break
+      }
+    }
+
+    if (!response) {
+      console.error('[API] All fetch attempts failed')
       return Response.json({
         success: false,
-        error: `API returned ${response.status}`,
+        error: 'Unable to fetch videos - API may be blocked in your region. Try using a VPN.',
         videos: [],
         totalPages: 0,
         totalCount: 0,
-      }, { status: 500 })
+      }, { status: 503 })
     }
 
     const data = await response.json()

@@ -58,20 +58,48 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   // Search for video by ID
-  const searchUrl = `https://www.eporner.com/api/v2/video/search/?query=${encodeURIComponent(id)}&per_page=10&thumbsize=big&format=json`
+  const directUrl = `https://www.eporner.com/api/v2/video/search/?query=${encodeURIComponent(id)}&per_page=10&thumbsize=big&format=json`
+
+  // Multiple proxy fallbacks
+  const proxyUrls = [
+    `https://corsproxy.io/?${encodeURIComponent(directUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}`,
+  ]
 
   console.log('[Video API] Fetching:', id)
 
-  try {
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 3600 } // Cache for 1 hour
-    })
+  // Try direct fetch first, fallback to proxies
+  async function tryFetch(url: string, timeout: number): Promise<Response | null> {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json',
+        },
+        signal: AbortSignal.timeout(timeout),
+        cache: 'no-store'
+      })
+      if (response.ok) return response
+    } catch (e) {
+      console.log('[Video API] Fetch failed:', (e as Error).message?.slice(0, 50))
+    }
+    return null
+  }
 
-    if (response.ok) {
+  try {
+    // Try direct first (fast timeout)
+    let response = await tryFetch(directUrl, 5000)
+
+    // Fallback to CORS proxies
+    if (!response) {
+      for (const proxyUrl of proxyUrls) {
+        console.log('[Video API] Trying proxy...')
+        response = await tryFetch(proxyUrl, 10000)
+        if (response) break
+      }
+    }
+
+    if (response) {
       const data = await response.json()
       const video = data.videos?.find((v: ApiVideo) => v.id === id)
 
