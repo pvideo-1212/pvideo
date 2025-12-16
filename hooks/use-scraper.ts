@@ -246,7 +246,7 @@ export function useSearch(q: string, page = 1) {
   const [state, setState] = useState<State<{ videos: VideoItem[]; hasMore: boolean; totalPages: number }>>({
     data: null, loading: false, error: null
   })
-  const ref = useRef<NodeJS.Timeout>()
+  const ref = useRef<NodeJS.Timeout | undefined>(undefined)
 
   useEffect(() => {
     if (!q.trim()) {
@@ -254,7 +254,7 @@ export function useSearch(q: string, page = 1) {
       return
     }
 
-    clearTimeout(ref.current)
+    if (ref.current) clearTimeout(ref.current)
     ref.current = setTimeout(async () => {
       const cacheKey = `search-${q}-${page}`
       const cached = getCached(cacheKey)
@@ -281,7 +281,7 @@ export function useSearch(q: string, page = 1) {
       }
     }, 400)
 
-    return () => clearTimeout(ref.current)
+    return () => { if (ref.current) clearTimeout(ref.current) }
   }, [q, page])
 
   return state

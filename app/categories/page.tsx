@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useCategories, usePrefetch, prefetchCategory } from '@/hooks/use-scraper'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
@@ -52,10 +51,10 @@ function CategoriesContent() {
         filtered.sort((a, b) => b.name.localeCompare(a.name))
         break
       case 'count-desc':
-        filtered.sort((a, b) => (parseInt(b.count?.replace(/,/g, '') || '0') || 0) - (parseInt(a.count?.replace(/,/g, '') || '0') || 0))
+        filtered.sort((a, b) => (b.count || 0) - (a.count || 0))
         break
       case 'count-asc':
-        filtered.sort((a, b) => (parseInt(a.count?.replace(/,/g, '') || '0') || 0) - (parseInt(b.count?.replace(/,/g, '') || '0') || 0))
+        filtered.sort((a, b) => (a.count || 0) - (b.count || 0))
         break
     }
 
@@ -130,19 +129,15 @@ function CategoriesContent() {
                 <Link key={category.slug} href={`/?view=category&category=${category.slug}`} onMouseEnter={() => prefetchCategory(category.slug)}
                   className="group bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] hover:border-[#FF9000]/50 transition-all overflow-hidden">
                   <div className="aspect-video relative bg-[#2c2c2c]">
-                    {category.thumbnail ? (
-                      <Image src={category.thumbnail} alt={category.name} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw" />
-                    ) : (
-                      <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getColor(category.name)}`}>
-                        <span className="text-2xl font-bold text-white/90 drop-shadow-lg">
-                          {category.name.split(' ').slice(0, 2).map(w => w.charAt(0).toUpperCase()).join('')}
-                        </span>
-                      </div>
-                    )}
+                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getColor(category.name)}`}>
+                      <span className="text-2xl font-bold text-white/90 drop-shadow-lg">
+                        {category.name.split(' ').slice(0, 2).map(w => w.charAt(0).toUpperCase()).join('')}
+                      </span>
+                    </div>
                   </div>
                   <div className="p-3 text-center">
                     <h3 className="font-medium text-white text-sm group-hover:text-[#FF9000] truncate">{category.name}</h3>
-                    {category.count && <p className="text-xs text-gray-500 mt-0.5">{category.count} videos</p>}
+                    {category.count && <p className="text-xs text-gray-500 mt-0.5">{category.count.toLocaleString()} videos</p>}
                   </div>
                 </Link>
               ))}
