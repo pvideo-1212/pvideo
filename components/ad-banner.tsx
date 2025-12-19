@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useId } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface AdBannerProps {
   zoneId: string
@@ -15,17 +15,21 @@ declare global {
 }
 
 // ExoClick/Magsrv Ad Banner Component
+// This component only renders on client to avoid hydration mismatch
 export function AdBanner({ zoneId, className = '' }: AdBannerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const uniqueId = useId()
+  const [mounted, setMounted] = useState(false)
   const servedRef = useRef(false)
 
   useEffect(() => {
-    if (servedRef.current) return
+    setMounted(true)
+  }, [])
 
-    // Wait for ad-provider script to be ready
+  useEffect(() => {
+    if (!mounted || servedRef.current) return
+
+    // Wait for ad-provider script to be ready, then serve
     const serveAd = () => {
-      if (typeof window !== 'undefined' && containerRef.current) {
+      if (typeof window !== 'undefined') {
         window.AdProvider = window.AdProvider || []
         window.AdProvider.push({ serve: {} })
         servedRef.current = true
@@ -36,15 +40,19 @@ export function AdBanner({ zoneId, className = '' }: AdBannerProps) {
     const timer = setTimeout(serveAd, 300)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [mounted])
+
+  // Don't render on server to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className={`ad-container ${className}`} style={{ minHeight: '90px' }}>
+        {/* Placeholder during SSR */}
+      </div>
+    )
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className={`ad-container ${className}`}
-      id={`ad-${uniqueId}`}
-    >
-      {/* ExoClick Ad Slot - exactly matching their format */}
+    <div className={`ad-container ${className}`}>
       <ins
         className="eas6a97888e2"
         data-zoneid={zoneId}
@@ -53,39 +61,12 @@ export function AdBanner({ zoneId, className = '' }: AdBannerProps) {
   )
 }
 
+// Alias for backwards compatibility
+export function NativeAdBanner({ zoneId = "5805148", className = '' }: { zoneId?: string, className?: string }) {
+  return <AdBanner zoneId={zoneId} className={className} />
+}
+
 // Banner with default zone ID
 export function DefaultAd({ className }: { className?: string }) {
   return <AdBanner zoneId="5805148" className={className} />
-}
-
-// Native Ad component that injects via dangerouslySetInnerHTML
-// Use this for more reliable ad rendering
-export function NativeAdBanner({ zoneId = "5805148", className = '' }: { zoneId?: string, className?: string }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    // Clear any previous content
-    containerRef.current.innerHTML = ''
-
-    // Create ins element
-    const ins = document.createElement('ins')
-    ins.className = 'eas6a97888e2'
-    ins.setAttribute('data-zoneid', zoneId)
-    containerRef.current.appendChild(ins)
-
-    // Create and execute script to serve ad
-    const script = document.createElement('script')
-    script.textContent = '(AdProvider = window.AdProvider || []).push({"serve": {}});'
-    containerRef.current.appendChild(script)
-  }, [zoneId])
-
-  return (
-    <div
-      ref={containerRef}
-      className={`ad-container ${className}`}
-      style={{ minHeight: '90px' }}
-    />
-  )
 }
