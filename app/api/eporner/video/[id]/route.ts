@@ -57,10 +57,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return Response.json({ success: false, error: 'Video ID required' }, { status: 400 })
   }
 
-  // Search for video by ID
-  const directUrl = `https://www.eporner.com/api/v2/video/search/?query=${encodeURIComponent(id)}&per_page=10&thumbsize=big&format=json`
+  const directUrl = `https://www.eporner.com/api/v2/video/id/?id=${encodeURIComponent(id)}&thumbsize=big&format=json`
 
-  // Multiple proxy fallbacks
   const proxyUrls = [
     `https://corsproxy.io/?${encodeURIComponent(directUrl)}`,
     `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}`,
@@ -68,7 +66,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   console.log('[Video API] Fetching:', id)
 
-  // Try direct fetch first, fallback to proxies
   async function tryFetch(url: string, timeout: number): Promise<Response | null> {
     try {
       const response = await fetch(url, {
@@ -87,23 +84,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    // Try direct first (fast timeout)
-    let response = await tryFetch(directUrl, 5000)
+    let response: Response | null = null
 
-    // Fallback to CORS proxies
-    if (!response) {
-      for (const proxyUrl of proxyUrls) {
-        console.log('[Video API] Trying proxy...')
-        response = await tryFetch(proxyUrl, 10000)
-        if (response) break
-      }
+    for (const proxyUrl of proxyUrls) {
+      response = await tryFetch(proxyUrl, 15000)
+      if (response) break
+      console.log('[Video API] Trying next proxy...')
     }
 
     if (response) {
       const data = await response.json()
-      const video = data.videos?.find((v: ApiVideo) => v.id === id)
+      const video = data.video || data
 
-      if (video) {
+      if (video && video.id) {
         console.log('[Video API] Found:', video.title)
         return Response.json({ success: true, data: transformVideo(video) })
       }
@@ -112,7 +105,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     console.error('[Video API] Error:', error)
   }
 
-  // Return fallback for embedding even if not found
+  // Return fallback
   console.log('[Video API] Using fallback for:', id)
   return Response.json({
     success: true,

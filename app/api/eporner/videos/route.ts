@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   const directUrl = `${baseUrl}?${params.toString()}`
 
-  // Multiple proxy fallbacks
+  // Multiple proxy fallbacks for reliability
   const proxyUrls = [
     `https://corsproxy.io/?${encodeURIComponent(directUrl)}`,
     `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}`,
@@ -75,7 +75,6 @@ export async function GET(request: NextRequest) {
 
   console.log('[API] Fetching:', query, 'page:', page)
 
-  // Try direct fetch first, fallback to proxies
   async function tryFetch(url: string, timeout: number): Promise<Response | null> {
     try {
       const response = await fetch(url, {
@@ -94,23 +93,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Try direct first (fast timeout for quick fail in blocked regions)
-    let response = await tryFetch(directUrl, 5000)
+    let response: Response | null = null
 
-    // Fallback to CORS proxies if direct fails
-    if (!response) {
-      for (const proxyUrl of proxyUrls) {
-        console.log('[API] Trying proxy fallback...')
-        response = await tryFetch(proxyUrl, 10000)
-        if (response) break
-      }
+    for (const proxyUrl of proxyUrls) {
+      response = await tryFetch(proxyUrl, 15000)
+      if (response) break
+      console.log('[API] Trying next proxy...')
     }
 
     if (!response) {
       console.error('[API] All fetch attempts failed')
       return Response.json({
         success: false,
-        error: 'Unable to fetch videos - API may be blocked in your region. Try using a VPN.',
+        error: 'Unable to fetch videos',
         videos: [],
         totalPages: 0,
         totalCount: 0,
@@ -118,7 +113,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
-
     const videos = (data.videos || []).map(transformVideo)
 
     console.log('[API] Success:', videos.length, 'videos from', data.total_count, 'total')

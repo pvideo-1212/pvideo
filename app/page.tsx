@@ -114,6 +114,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'categories' | 'channels' | null>(null)
   const [orderBy, setOrderBy] = useState('top-weekly')
   const [showOrderMenu, setShowOrderMenu] = useState(false)
+  const [searchPage, setSearchPage] = useState(1)
 
   usePrefetch()
 
@@ -121,12 +122,12 @@ export default function Home() {
   const { data: channels, loading: channelLoad } = useChannels()
   const { data: pornstars } = usePornstars()
   const { data: vids, loading: vidLoad } = useVideos(selectedCategory || undefined, selectedChannel || undefined, selectedModel || undefined, currentPage, orderBy)
-  const { data: searchData, loading: searchLoad } = useSearch(searchQuery)
+  const { data: searchData, loading: searchLoad } = useSearch(searchQuery, searchPage)
 
   const displayVids = searchQuery ? searchData?.videos : vids?.videos
   const displayLoad = searchQuery ? searchLoad : vidLoad
-  const totalPages = vids?.totalPages || 50
-  const totalCount = vids?.totalCount || 0
+  const totalPages = searchQuery ? (searchData?.totalPages || 50) : (vids?.totalPages || 50)
+  const totalCount = searchQuery ? (searchData?.videos?.length || 0) : (vids?.totalCount || 0)
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search)
@@ -233,7 +234,7 @@ export default function Home() {
                     className="w-full pl-11 pr-10 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000] focus:ring-1 focus:ring-[#FF9000]/30 transition-all"
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                    <button onClick={() => { setSearchQuery(''); setSearchPage(1) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -448,32 +449,42 @@ export default function Home() {
           )
         )}
 
-        {/* Pagination */}
-        {!viewMode && !searchQuery && displayVids?.length ? (
+        {/* Pagination - for both regular videos and search results */}
+        {!viewMode && displayVids?.length ? (
           <div className="flex items-center justify-center gap-2 mt-12 flex-wrap">
             <button
-              onClick={() => { setCurrentPage(1); window.scrollTo(0, 0) }}
-              disabled={currentPage === 1}
+              onClick={() => {
+                if (searchQuery) { setSearchPage(1) } else { setCurrentPage(1) }
+                window.scrollTo(0, 0)
+              }}
+              disabled={(searchQuery ? searchPage : currentPage) === 1}
               className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-lg disabled:opacity-40 text-sm border border-[#2a2a2a] hover:bg-[#252525] transition-colors"
             >
               First
             </button>
             <button
-              onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0) }}
-              disabled={currentPage === 1}
+              onClick={() => {
+                if (searchQuery) { setSearchPage(p => Math.max(1, p - 1)) } else { setCurrentPage(p => Math.max(1, p - 1)) }
+                window.scrollTo(0, 0)
+              }}
+              disabled={(searchQuery ? searchPage : currentPage) === 1}
               className="px-4 py-2.5 bg-[#1a1a1a] text-white rounded-lg disabled:opacity-40 flex items-center gap-1.5 border border-[#2a2a2a] hover:bg-[#252525] transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />Prev
             </button>
 
             {[...Array(Math.min(5, totalPages))].map((_, i) => {
-              const num = currentPage <= 3 ? i + 1 : currentPage - 2 + i
+              const activePage = searchQuery ? searchPage : currentPage
+              const num = activePage <= 3 ? i + 1 : activePage - 2 + i
               if (num < 1 || num > totalPages) return null
               return (
                 <button
                   key={num}
-                  onClick={() => { setCurrentPage(num); window.scrollTo(0, 0) }}
-                  className={`w-11 h-11 rounded-lg text-sm font-medium transition-all ${currentPage === num ? 'bg-[#FF9000] text-black shadow-lg shadow-[#FF9000]/20' : 'bg-[#1a1a1a] text-white hover:bg-[#252525] border border-[#2a2a2a]'}`}
+                  onClick={() => {
+                    if (searchQuery) { setSearchPage(num) } else { setCurrentPage(num) }
+                    window.scrollTo(0, 0)
+                  }}
+                  className={`w-11 h-11 rounded-lg text-sm font-medium transition-all ${activePage === num ? 'bg-[#FF9000] text-black shadow-lg shadow-[#FF9000]/20' : 'bg-[#1a1a1a] text-white hover:bg-[#252525] border border-[#2a2a2a]'}`}
                 >
                   {num}
                 </button>
@@ -483,8 +494,11 @@ export default function Home() {
             {totalPages > 5 && <span className="text-gray-600 px-2">...</span>}
 
             <button
-              onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0) }}
-              disabled={currentPage >= totalPages}
+              onClick={() => {
+                if (searchQuery) { setSearchPage(p => Math.min(totalPages, p + 1)) } else { setCurrentPage(p => Math.min(totalPages, p + 1)) }
+                window.scrollTo(0, 0)
+              }}
+              disabled={(searchQuery ? searchPage : currentPage) >= totalPages}
               className="px-5 py-2.5 bg-[#FF9000] text-black font-semibold rounded-lg flex items-center gap-1.5 shadow-lg shadow-[#FF9000]/20 hover:bg-[#FFa020] transition-colors disabled:opacity-50"
             >
               Next<ChevronRight className="w-4 h-4" />

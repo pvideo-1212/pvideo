@@ -6,7 +6,8 @@ import Link from 'next/link'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
-import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, ExternalLink, Star, Clock } from 'lucide-react'
+import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock } from 'lucide-react'
+import { HLSPlayer } from '@/components/hls-player'
 
 // Related video card with native img
 function RelatedVideoCard({ video }: { video: any }) {
@@ -155,8 +156,6 @@ function WatchContent() {
     )
   }
 
-  const embedUrl = videoData.embedUrl || `https://www.eporner.com/embed/${id}/`
-
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
       <SiteHeader showSearch={false} />
@@ -165,18 +164,12 @@ function WatchContent() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-4">
-            {/* Video Player - Embed */}
-            <div className="bg-black rounded-xl overflow-hidden shadow-2xl">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={embedUrl}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  title={videoData.title}
-                />
-              </div>
-            </div>
+            {/* Video Player - HLS with proxy */}
+            <HLSPlayer
+              videoId={id}
+              title={videoData.title || 'Video'}
+              thumbnail={videoData.thumbnail}
+            />
 
             {/* Video Info - Enhanced */}
             <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sm:p-5">
@@ -241,16 +234,6 @@ function WatchContent() {
                 <button className="px-5 py-2.5 rounded-full bg-[#2c2c2c] text-white hover:bg-[#3c3c3c] transition-colors flex items-center gap-2">
                   <Share2 className="w-4 h-4" /><span className="text-sm">Share</span>
                 </button>
-                {videoData.url && (
-                  <a
-                    href={videoData.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-5 py-2.5 rounded-full bg-[#2c2c2c] text-white hover:bg-[#3c3c3c] transition-colors flex items-center gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4" /><span className="text-sm">Source</span>
-                  </a>
-                )}
               </div>
             </div>
 

@@ -157,6 +157,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
+        <meta name="6a97888e-site-verification" content="6535a62ed6135144c8b231bf87e7b548"></meta>
         <Script
           id="organization-schema"
           type="application/ld+json"

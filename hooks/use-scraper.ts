@@ -206,25 +206,43 @@ export function useVideos(
       else if (channel) query = channel.replace(/-/g, ' ')
       else if (model) query = model.replace(/-/g, ' ')
 
+      // For home page (no filters), randomize the page to get different videos
+      const isHomePage = !category && !channel && !model && query === 'all'
+      const randomPage = isHomePage && page === 1 ? Math.floor(Math.random() * 10) + 1 : page
+
       // Check cache first
-      const cacheKey = `videos-${query}-${page}-${order}`
+      const cacheKey = `videos-${query}-${randomPage}-${order}`
       const cached = getCached(cacheKey)
 
+      // Helper to shuffle videos
+      const shuffleVideos = (videos: any[]) => {
+        const shuffled = [...videos]
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+            ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+        }
+        return shuffled
+      }
+
       if (cached) {
-        setState({ data: cached, loading: false, error: null })
-        prefetchNextPage(query, page, order)
+        // Always shuffle even from cache for variety
+        const shuffledData = { ...cached, videos: shuffleVideos(cached.videos) }
+        setState({ data: shuffledData, loading: false, error: null })
+        prefetchNextPage(query, randomPage, order)
         return
       }
 
       setState(p => ({ ...p, loading: true }))
 
-      const result = await fetchVideos(query, page, order)
+      const result = await fetchVideos(query, randomPage, order)
 
       if (cancelled) return
 
       if (result) {
-        setState({ data: result, loading: false, error: null })
-        prefetchNextPage(query, page, order)
+        // Shuffle videos for variety
+        const shuffledVideos = shuffleVideos(result.videos)
+        setState({ data: { ...result, videos: shuffledVideos }, loading: false, error: null })
+        prefetchNextPage(query, randomPage, order)
       } else {
         setState({
           data: { videos: [], hasMore: false, totalPages: 0, totalCount: 0 },
@@ -279,7 +297,7 @@ export function useSearch(q: string, page = 1) {
           error: 'Search failed'
         })
       }
-    }, 400)
+    }, 500) // 500ms debounce to reduce API calls during typing
 
     return () => { if (ref.current) clearTimeout(ref.current) }
   }, [q, page])
