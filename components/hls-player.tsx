@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Hls from 'hls.js'
-import { Play, Pause, Volume2, VolumeX, Maximize, Loader2, AlertCircle } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Maximize, Loader2, AlertCircle, RotateCcw } from 'lucide-react'
 
 interface HLSPlayerProps {
   videoId: string
@@ -24,115 +24,130 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
-  useEffect(() => {
-    let mounted = true
+  const loadVideo = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      setEmbedUrl(null)
 
-    async function loadVideo() {
-      try {
-        setIsLoading(true)
-        setError(null)
-        setEmbedUrl(null)
+      console.log('[HLSPlayer] Fetching sources for:', videoId)
 
-        // Fetch video sources from our API
-        const res = await fetch(`/api/eporner/stream/${videoId}`)
-        const data = await res.json()
+      // Fetch video sources from our API
+      const res = await fetch(`/api/eporner/stream/${videoId}`)
+      const data = await res.json()
 
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to load video sources')
-        }
+      console.log('[HLSPlayer] API response:', data.method, 'HLS:', data.sources?.hls?.length, 'MP4:', data.sources?.mp4?.length)
 
-        if (!mounted) return
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to load video sources')
+      }
 
-        // Check if we have embed URL (most common case for India users)
-        if (data.sources.embed) {
-          console.log('[HLSPlayer] Using embed iframe')
-          setEmbedUrl(data.sources.embed)
+      const video = videoRef.current
+      if (!video) return
+
+      // Destroy existing HLS instance
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+
+      // Try HLS sources first
+      if (data.sources.hls && data.sources.hls.length > 0) {
+        const hlsUrl = data.sources.hls[0]
+        const proxiedUrl = `/api/proxy/hls?url=${encodeURIComponent(hlsUrl)}`
+
+        console.log('[HLSPlayer] Using HLS source')
+
+        if (Hls.isSupported()) {
+          const hls = new Hls({
+            xhrSetup: (xhr) => {
+              xhr.withCredentials = false
+            },
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
+            startLevel: -1, // Auto quality
+          })
+
+          hls.loadSource(proxiedUrl)
+          hls.attachMedia(video)
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('[HLSPlayer] HLS manifest loaded')
+            setIsLoading(false)
+          })
+
+          hls.on(Hls.Events.ERROR, (event, errorData) => {
+            if (errorData.fatal) {
+              console.error('[HLSPlayer] HLS fatal error:', errorData.type, errorData.details)
+              hls.destroy()
+              // Try MP4 fallback
+              if (data.sources.mp4 && data.sources.mp4.length > 0) {
+                tryMP4(data.sources.mp4[0])
+              } else if (data.sources.embed) {
+                setEmbedUrl(data.sources.embed)
+                setIsLoading(false)
+              } else {
+                setError('Video playback failed')
+                setIsLoading(false)
+              }
+            }
+          })
+
+          hlsRef.current = hls
+          return
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          // Safari native HLS
+          video.src = proxiedUrl
           setIsLoading(false)
           return
         }
-
-        const video = videoRef.current
-        if (!video) return
-
-        // Try HLS sources first
-        if (data.sources.hls && data.sources.hls.length > 0) {
-          const hlsUrl = data.sources.hls[0]
-          const proxiedUrl = `/api/proxy/hls?url=${encodeURIComponent(hlsUrl)}`
-
-          if (Hls.isSupported()) {
-            const hls = new Hls({
-              xhrSetup: (xhr) => {
-                xhr.withCredentials = false
-              },
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-            })
-
-            hls.loadSource(proxiedUrl)
-            hls.attachMedia(video)
-
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-              if (mounted) {
-                setIsLoading(false)
-              }
-            })
-
-            hls.on(Hls.Events.ERROR, (event, data) => {
-              if (data.fatal) {
-                console.error('[HLS] Fatal error:', data.type, data.details)
-                // Try MP4 fallback
-                tryMP4Fallback()
-              }
-            })
-
-            hlsRef.current = hls
-          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Safari native HLS
-            video.src = proxiedUrl
-            setIsLoading(false)
-          }
-        } else if (data.sources.mp4 && data.sources.mp4.length > 0) {
-          // Use MP4 directly
-          tryMP4Fallback()
-        } else {
-          throw new Error('No video sources available')
-        }
-
-        async function tryMP4Fallback() {
-          if (!mounted || !video) return
-
-          if (data.sources.mp4 && data.sources.mp4.length > 0) {
-            // Proxy the MP4 through our server
-            const mp4Url = data.sources.mp4[0]
-            video.src = `/api/proxy/hls?url=${encodeURIComponent(mp4Url)}`
-            setIsLoading(false)
-          } else {
-            setError('No playable video found')
-            onError?.()
-          }
-        }
-
-      } catch (err) {
-        console.error('[HLSPlayer] Error:', err)
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load video')
-          setIsLoading(false)
-          onError?.()
-        }
       }
-    }
 
+      // Try MP4 sources
+      if (data.sources.mp4 && data.sources.mp4.length > 0) {
+        tryMP4(data.sources.mp4[0])
+        return
+      }
+
+      // Fallback to embed iframe
+      if (data.sources.embed) {
+        console.log('[HLSPlayer] Using embed fallback')
+        setEmbedUrl(data.sources.embed)
+        setIsLoading(false)
+        return
+      }
+
+      throw new Error('No video sources available')
+
+      function tryMP4(url: string) {
+        if (!video) return
+        console.log('[HLSPlayer] Using MP4 source')
+        const proxiedUrl = `/api/proxy/hls?url=${encodeURIComponent(url)}`
+        video.src = proxiedUrl
+        video.load()
+        setIsLoading(false)
+      }
+
+    } catch (err) {
+      console.error('[HLSPlayer] Error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load video')
+      setIsLoading(false)
+      onError?.()
+    }
+  }, [videoId, onError])
+
+  useEffect(() => {
     loadVideo()
 
     return () => {
-      mounted = false
       if (hlsRef.current) {
         hlsRef.current.destroy()
         hlsRef.current = null
       }
     }
-  }, [videoId, onError])
+  }, [loadVideo, retryCount])
 
   // Video event handlers
   useEffect(() => {
@@ -146,9 +161,17 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
     }
     const handleLoadedMetadata = () => {
       setDuration(video.duration)
+      setIsLoading(false)
     }
     const handleWaiting = () => setIsLoading(true)
     const handlePlaying = () => setIsLoading(false)
+    const handleCanPlay = () => setIsLoading(false)
+    const handleError = () => {
+      console.error('[HLSPlayer] Video error event')
+      if (!embedUrl) {
+        setError('Video playback failed')
+      }
+    }
 
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
@@ -156,6 +179,8 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
     video.addEventListener('waiting', handleWaiting)
     video.addEventListener('playing', handlePlaying)
+    video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('error', handleError)
 
     return () => {
       video.removeEventListener('play', handlePlay)
@@ -164,8 +189,10 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('waiting', handleWaiting)
       video.removeEventListener('playing', handlePlaying)
+      video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('error', handleError)
     }
-  }, [])
+  }, [embedUrl])
 
   const togglePlay = () => {
     const video = videoRef.current
@@ -206,6 +233,10 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
     video.currentTime = pos * duration
   }
 
+  const handleRetry = () => {
+    setRetryCount(c => c + 1)
+  }
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
@@ -220,8 +251,8 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
       onMouseLeave={() => !isLoading && setShowControls(false)}
     >
       <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-        {/* Embed iframe - for India users where direct fetch doesn't work */}
-        {embedUrl ? (
+        {/* Embed iframe fallback */}
+        {embedUrl && !error ? (
           <iframe
             src={embedUrl}
             className="absolute inset-0 w-full h-full"
@@ -234,7 +265,7 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
         ) : (
           <>
             {/* Thumbnail as poster */}
-            {thumbnail && isLoading && (
+            {thumbnail && isLoading && !error && (
               <img
                 src={thumbnail}
                 alt={title}
@@ -248,6 +279,7 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
               className="absolute inset-0 w-full h-full"
               playsInline
               onClick={togglePlay}
+              poster={thumbnail}
             />
 
             {/* Loading spinner */}
@@ -270,9 +302,10 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
                   <h3 className="text-lg font-semibold text-white mb-2">Video Unavailable</h3>
                   <p className="text-gray-400 text-sm mb-4">{error}</p>
                   <button
-                    onClick={() => window.location.reload()}
-                    className="px-6 py-2 bg-[#FF9000] hover:bg-[#FFa020] text-black font-semibold rounded-full transition-colors"
+                    onClick={handleRetry}
+                    className="px-6 py-2 bg-[#FF9000] hover:bg-[#FFa020] text-black font-semibold rounded-full transition-colors flex items-center gap-2 mx-auto"
                   >
+                    <RotateCcw className="w-4 h-4" />
                     Retry
                   </button>
                 </div>
@@ -292,7 +325,7 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
             )}
 
             {/* Controls */}
-            {showControls && !error && (
+            {showControls && !error && !isLoading && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                 {/* Progress bar */}
                 <div
@@ -340,4 +373,3 @@ export function HLSPlayer({ videoId, title, thumbnail, onError }: HLSPlayerProps
     </div>
   )
 }
-
