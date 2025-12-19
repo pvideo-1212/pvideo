@@ -14,15 +14,23 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 // Get all 10,000+ keywords
-const allKeywords = getAllKeywords()
+let allKeywords = getAllKeywords()
+let arr = ["4tube", "alohatub",
+  "amaturetube",
+  "beautiful sex tube",
+  "black sex tube",
+  "blacked sex tube",
+  "free black sex video",
+  "grandma sex tube",
+  "guysformatures"];
 
 export const metadata: Metadata = {
-  title: "Pornhub - Free Porn Videos & Sex Movies",
-  description: "Watch free porn videos at Pornhub, the world's leading free porn site. Choose from millions of hardcore videos that stream quickly and in high quality, including amazing HD porn. The largest amateur porn community on the net as well as full-length scenes from the top studios.",
-  keywords: allKeywords,
-  authors: [{ name: "Pornhub" }],
-  creator: "Pornhub",
-  publisher: "Pornhub",
+  title: "4tube - Free Porn Videos & Sex Movies",
+  description: "Watch free porn videos at 4tube, the world's leading free porn site. Choose from millions of hardcore videos that stream quickly and in high quality, including amazing HD porn. The largest amateur porn community on the net as well as full-length scenes from the top studios.",
+  keywords: [...allKeywords, ...arr],
+  authors: [{ name: "4tube" }],
+  creator: "4tube",
+  publisher: "4tube",
   robots: {
     index: true,
     follow: true,
