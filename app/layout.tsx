@@ -212,6 +212,11 @@ export default function RootLayout({
         {/* Preconnect to CDNs */}
         <link rel="preconnect" href="https://cdn.pornhub.com" />
         <link rel="dns-prefetch" href="https://cdn.pornhub.com" />
+
+        {/* ExoClick/Magsrv Ads - Delegate CH */}
+        <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+        <ins className="eas6a97888e2" data-zoneid="5805148"></ins>
+        <script dangerouslySetInnerHTML={{ __html: '(AdProvider = window.AdProvider || []).push({"serve": {}});' }} />
       </head>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider>

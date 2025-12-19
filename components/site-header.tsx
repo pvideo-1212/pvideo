@@ -21,12 +21,12 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
 
   return (
     <div className="sticky top-0 z-50">
-      {/* VPN Banner - Always visible */}
-      <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-2 px-4">
-        <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-2 text-sm font-medium">
-          <Shield className="w-4 h-4" />
-          <span>🔒 Use a VPN for better experience and privacy</span>
-
+      {/* VPN Banner - Compact on mobile */}
+      <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-1.5 sm:py-2 px-3 sm:px-4">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">🔒 Use a VPN for better experience and privacy</span>
+          <span className="sm:hidden">🔒 Use VPN for best experience</span>
         </div>
       </div>
 

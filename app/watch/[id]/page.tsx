@@ -7,6 +7,7 @@ import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
 import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock } from 'lucide-react'
+import { NativeAdBanner } from '@/components/ad-banner'
 
 // Related video card with native img
 function RelatedVideoCard({ video }: { video: any }) {
@@ -178,34 +179,40 @@ function WatchContent() {
               </div>
             </div>
 
-            {/* Video Info - Enhanced */}
-            <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sm:p-5">
-              <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">{videoData.title || 'Untitled Video'}</h1>
+            {/* Video Info - Compact on Mobile */}
+            <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-3 sm:p-5">
+              <h1 className="text-base sm:text-xl font-bold text-white leading-tight">{videoData.title || 'Untitled Video'}</h1>
 
-              {/* Stats Cards Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                {/* Views */}
+              {/* Mobile: Inline Stats Row */}
+              <div className="flex flex-wrap items-center gap-3 mt-2 sm:hidden text-xs text-gray-400">
+                <span className="flex items-center gap-1">
+                  <Eye className="w-3.5 h-3.5 text-[#FF9000]" />{videoData.views || '0'} views
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />{videoData.rating || '0'}%
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-blue-500" />{videoData.duration || '--:--'}
+                </span>
+              </div>
+
+              {/* Desktop: Stats Cards Row */}
+              <div className="hidden sm:grid grid-cols-4 gap-3 mt-4">
                 <div className="bg-[#252525] rounded-lg p-3 text-center">
                   <Eye className="w-5 h-5 text-[#FF9000] mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">{videoData.views || '0'}</p>
                   <p className="text-xs text-gray-500">Views</p>
                 </div>
-
-                {/* Rating */}
                 <div className="bg-[#252525] rounded-lg p-3 text-center">
                   <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1 fill-yellow-500" />
                   <p className="text-lg font-bold text-white">{videoData.rating || '0'}%</p>
                   <p className="text-xs text-gray-500">Rating</p>
                 </div>
-
-                {/* Duration */}
                 <div className="bg-[#252525] rounded-lg p-3 text-center">
                   <Clock className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                   <p className="text-lg font-bold text-white">{videoData.duration || '--:--'}</p>
                   <p className="text-xs text-gray-500">Duration</p>
                 </div>
-
-                {/* Date */}
                 <div className="bg-[#252525] rounded-lg p-3 text-center">
                   <Calendar className="w-5 h-5 text-green-500 mx-auto mb-1" />
                   <p className="text-sm font-bold text-white truncate">{videoData.addedDate?.split(' ')[0] || 'N/A'}</p>
@@ -213,9 +220,9 @@ function WatchContent() {
                 </div>
               </div>
 
-              {/* Rating Bar */}
+              {/* Rating Bar - Hidden on mobile */}
               {videoData.rating && parseFloat(videoData.rating) > 0 && (
-                <div className="mt-4">
+                <div className="hidden sm:block mt-4">
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-gray-400">User Rating</span>
                     <span className="text-[#FF9000] font-semibold">{videoData.rating}%</span>
@@ -229,17 +236,17 @@ function WatchContent() {
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#2c2c2c]">
+              {/* Actions - Smaller on mobile */}
+              <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#2c2c2c]">
                 <button
                   onClick={() => setLiked(!liked)}
-                  className={`px-5 py-2.5 rounded-full flex items-center gap-2 transition-all font-medium ${liked ? 'bg-[#FF9000] text-black shadow-lg shadow-[#FF9000]/20' : 'bg-[#2c2c2c] text-white hover:bg-[#3c3c3c]'}`}
+                  className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-full flex items-center gap-1.5 sm:gap-2 transition-all font-medium text-xs sm:text-sm ${liked ? 'bg-[#FF9000] text-black shadow-lg shadow-[#FF9000]/20' : 'bg-[#2c2c2c] text-white hover:bg-[#3c3c3c]'}`}
                 >
-                  <ThumbsUp className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
-                  <span className="text-sm">{liked ? 'Liked!' : 'Like'}</span>
+                  <ThumbsUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${liked ? 'fill-current' : ''}`} />
+                  <span>{liked ? 'Liked!' : 'Like'}</span>
                 </button>
-                <button className="px-5 py-2.5 rounded-full bg-[#2c2c2c] text-white hover:bg-[#3c3c3c] transition-colors flex items-center gap-2">
-                  <Share2 className="w-4 h-4" /><span className="text-sm">Share</span>
+                <button className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#2c2c2c] text-white hover:bg-[#3c3c3c] transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                  <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span>Share</span>
                 </button>
               </div>
             </div>
@@ -294,17 +301,64 @@ function WatchContent() {
               </div>
             )}
 
-            {/* Mobile Related Videos */}
+            {/* Mobile Related Videos - Horizontal Scroll */}
             <div className="lg:hidden">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Film className="w-5 h-5 text-[#FF9000]" />More Videos
+                <Film className="w-5 h-5 text-[#FF9000]" />More Videos For You
               </h3>
               {recommendedLoading ? (
                 <RelatedVideosSkeleton />
               ) : recommendedVideos.length > 0 ? (
-                <div className="space-y-3">
-                  {recommendedVideos.slice(0, 6).map(v => <RelatedVideoCard key={v.id} video={v} />)}
-                </div>
+                <>
+                  {/* Horizontal scroll grid on mobile */}
+                  <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mb-6">
+                    <div className="flex gap-3" style={{ width: 'max-content' }}>
+                      {recommendedVideos.slice(0, 12).map(v => (
+                        <Link key={v.id} href={`/watch/${v.id}`} className="group flex-shrink-0 w-40">
+                          <div className="relative aspect-video rounded-lg overflow-hidden bg-[#2c2c2c]">
+                            {v.thumbnail && (
+                              <img
+                                src={v.thumbnail}
+                                alt=""
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            )}
+                            {v.duration && (
+                              <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[10px] text-white font-medium">
+                                {v.duration}
+                              </span>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-[#FF9000] flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all">
+                                <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                              </div>
+                            </div>
+                          </div>
+                          <h4 className="text-xs text-white font-medium line-clamp-2 mt-2 group-hover:text-[#FF9000] transition-colors">
+                            {v.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
+                            {v.views && <span>{v.views} views</span>}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Vertical list below horizontal scroll */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-400">Keep Watching</h4>
+                    {recommendedVideos.slice(12, 20).map(v => <RelatedVideoCard key={v.id} video={v} />)}
+                  </div>
+
+                  <Link
+                    href="/"
+                    className="flex items-center justify-center gap-2 py-4 mt-4 text-[#FF9000] text-sm font-medium hover:underline border-t border-[#2c2c2c]"
+                  >
+                    Browse More Videos
+                  </Link>
+                </>
               ) : (
                 <p className="text-gray-500 text-sm">No recommended videos</p>
               )}
@@ -314,6 +368,11 @@ function WatchContent() {
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-[400px] shrink-0 space-y-4">
             <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sticky top-20">
+              {/* Ad Banner - Top of Sidebar */}
+              <div className="mb-4 rounded-lg overflow-hidden bg-[#252525] min-h-[90px]">
+                <NativeAdBanner zoneId="5805148" className="w-full" />
+              </div>
+
               <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                 <Film className="w-5 h-5 text-[#FF9000]" />Recommended Videos
               </h3>
@@ -321,7 +380,14 @@ function WatchContent() {
                 <RelatedVideosSkeleton />
               ) : recommendedVideos.length > 0 ? (
                 <div className="space-y-3">
-                  {recommendedVideos.map(v => <RelatedVideoCard key={v.id} video={v} />)}
+                  {recommendedVideos.slice(0, 5).map(v => <RelatedVideoCard key={v.id} video={v} />)}
+
+                  {/* Ad Banner - Middle of sidebar */}
+                  <div className="py-2 rounded-lg overflow-hidden bg-[#252525] min-h-[90px]">
+                    <NativeAdBanner zoneId="5805148" className="w-full" />
+                  </div>
+
+                  {recommendedVideos.slice(5).map(v => <RelatedVideoCard key={v.id} video={v} />)}
                   <Link
                     href="/"
                     className="flex items-center justify-center gap-2 py-3 text-[#FF9000] text-sm font-medium hover:underline"

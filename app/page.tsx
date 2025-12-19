@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel } from '@/hooks/use-scraper'
 import SiteFooter from '@/components/site-footer'
 import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
+import { AdBanner } from '@/components/ad-banner'
 
 // Video Card with native img for better performance
 function VideoCard({ video }: { video: any }) {
@@ -74,17 +75,17 @@ function VideoCard({ video }: { video: any }) {
           </div>
         </div>
       </div>
-      <div className="p-3">
-        <h3 className="font-medium text-white text-sm line-clamp-2 group-hover:text-[#FF9000] transition-colors leading-snug">{video.title}</h3>
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+      <div className="p-2 sm:p-3">
+        <h3 className="font-medium text-white text-xs sm:text-sm line-clamp-2 group-hover:text-[#FF9000] transition-colors leading-snug">{video.title}</h3>
+        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-gray-500">
           {video.views && (
             <span className="flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5" />{video.views}
+              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{video.views}
             </span>
           )}
           {video.rating && parseFloat(video.rating) > 0 && (
             <span className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />{video.rating}
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-yellow-500 text-yellow-500" />{video.rating}
             </span>
           )}
         </div>
@@ -184,11 +185,12 @@ export default function Home() {
 
       {/* Sticky Header Container with VPN Banner */}
       <div className="sticky top-0 z-50">
-        {/* VPN Banner - Always visible */}
-        <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-2 px-4">
-          <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-2 text-sm font-medium">
-            <Shield className="w-4 h-4" />
-            <span>🔒 Use a VPN for better experience and privacy</span>
+        {/* VPN Banner - Compact on mobile */}
+        <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-1.5 sm:py-2 px-3 sm:px-4">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">🔒 Use a VPN for better experience and privacy</span>
+            <span className="sm:hidden">🔒 Use VPN for best experience</span>
           </div>
         </div>
 
@@ -316,7 +318,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-[1600px] mx-auto px-4 py-8">
+      <main className="max-w-[1600px] mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Section Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
@@ -437,9 +439,40 @@ export default function Home() {
               <p className="text-gray-500 text-sm">Loading videos...</p>
             </div>
           ) : displayVids?.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-              {displayVids.map(v => <VideoCard key={v.id} video={v} />)}
-            </div>
+            <>
+              {/* First row of videos */}
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
+                {displayVids.slice(0, 8).map(v => <VideoCard key={v.id} video={v} />)}
+              </div>
+
+              {/* Ad Banner after first 8 videos */}
+              {displayVids.length > 8 && (
+                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4">
+                  <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
+                </div>
+              )}
+
+              {/* Second batch of videos */}
+              {displayVids.length > 8 && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
+                  {displayVids.slice(8, 16).map(v => <VideoCard key={v.id} video={v} />)}
+                </div>
+              )}
+
+              {/* Ad Banner after 16 videos */}
+              {displayVids.length > 16 && (
+                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4">
+                  <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
+                </div>
+              )}
+
+              {/* Remaining videos */}
+              {displayVids.length > 16 && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
+                  {displayVids.slice(16).map(v => <VideoCard key={v.id} video={v} />)}
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <Film className="w-16 h-16 text-gray-700" />
