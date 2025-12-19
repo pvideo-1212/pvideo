@@ -7,7 +7,6 @@ import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
 import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock } from 'lucide-react'
-import { HLSPlayer } from '@/components/hls-player'
 
 // Related video card with native img
 function RelatedVideoCard({ video }: { video: any }) {
@@ -155,6 +154,8 @@ function WatchContent() {
       </div>
     )
   }
+  // Use embed API that shows VPN suggestion for India
+  const embedUrl = `/api/eporner/embed/${id}`
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -164,12 +165,18 @@ function WatchContent() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-4">
-            {/* Video Player - HLS with proxy */}
-            <HLSPlayer
-              videoId={id}
-              title={videoData.title || 'Video'}
-              thumbnail={videoData.thumbnail}
-            />
+            {/* Video Player - Embed with VPN suggestion fallback */}
+            <div className="bg-black rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  src={embedUrl}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  title={videoData.title}
+                />
+              </div>
+            </div>
 
             {/* Video Info - Enhanced */}
             <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sm:p-5">
