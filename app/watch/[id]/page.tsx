@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import SiteHeader from '@/components/site-header'
@@ -9,6 +9,36 @@ import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
 import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock, ChevronDown, User } from 'lucide-react'
 import { NativeAdBanner, MyBidBanner } from '@/components/ad-banner'
 import { HLSPlayer } from '@/components/hls-player'
+
+// Track video for sitemap and SEO
+async function trackVideoPlay(video: {
+  id: string
+  title?: string
+  thumbnail?: string
+  duration?: string
+  views?: string
+  rating?: string
+  categories?: string[]
+}) {
+  try {
+    await fetch('/api/track-video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: video.id,
+        title: video.title || 'Video',
+        thumbnail: video.thumbnail,
+        duration: video.duration,
+        views: video.views,
+        rating: video.rating,
+        categories: video.categories
+      })
+    })
+  } catch (error) {
+    // Silently fail - tracking is non-critical
+    console.error('[TrackVideo] Failed:', error)
+  }
+}
 
 // Format view count to readable format
 function formatViews(views: string | number): string {
@@ -135,6 +165,21 @@ function WatchContent() {
 
   const [liked, setLiked] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  // Track video for sitemap and SEO when data loads
+  useEffect(() => {
+    if (videoData && videoData.id && videoData.title) {
+      trackVideoPlay({
+        id: videoData.id,
+        title: videoData.title,
+        thumbnail: videoData.thumbnail,
+        duration: videoData.duration,
+        views: videoData.views,
+        rating: videoData.rating,
+        categories: videoData.categories
+      })
+    }
+  }, [videoData])
 
   const handleLoadMore = async () => {
     setLoadingMore(true)

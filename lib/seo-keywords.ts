@@ -492,6 +492,46 @@ export function getPopularSearches(): string[] {
   ]
 }
 
+// Get dynamic keywords from tracked videos (for SSR/ISR pages)
+// Note: This is meant to be called server-side only
+export async function getDynamicKeywords(): Promise<string[]> {
+  try {
+    // Dynamic import to avoid client-side issues
+    const { getTrackedKeywords } = await import('./video-store')
+    const trackedKeywords = getTrackedKeywords()
+
+    // Merge with static keywords, tracked keywords first (more relevant)
+    const allStatic = getAllKeywords()
+    const combined = new Set<string>()
+
+    // Add tracked keywords first (priority)
+    trackedKeywords.slice(0, 2000).forEach(k => combined.add(k))
+
+    // Add static keywords
+    allStatic.forEach(k => combined.add(k))
+
+    return Array.from(combined)
+  } catch (error) {
+    console.error('[SEO] Error loading dynamic keywords:', error)
+    return getAllKeywords()
+  }
+}
+
+// Get all keywords including dynamic ones (synchronous version for client)
+export function getAllKeywordsWithDynamic(dynamicKeywords: string[] = []): string[] {
+  const allStatic = getAllKeywords()
+  const combined = new Set<string>()
+
+  // Add dynamic keywords first (priority)
+  dynamicKeywords.forEach(k => combined.add(k))
+
+  // Add static keywords
+  allStatic.forEach(k => combined.add(k))
+
+  return Array.from(combined)
+}
+
 // Export total count
 export const TOTAL_KEYWORDS = getAllKeywords().length
 console.log(`[SEO] Loaded ${TOTAL_KEYWORDS} keywords`)
+
