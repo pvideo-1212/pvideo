@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel } from '@/hooks/use-scraper'
+import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel, useSearchSuggestions } from '@/hooks/use-scraper'
 import SiteFooter from '@/components/site-footer'
 import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
 import { AdBanner, MyBidBanner } from '@/components/ad-banner'
@@ -171,6 +171,8 @@ export default function Home() {
   const [orderBy, setOrderBy] = useState('top-weekly')
   const [showOrderMenu, setShowOrderMenu] = useState(false)
   const [searchPage, setSearchPage] = useState(1)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
 
   usePrefetch()
 
@@ -179,6 +181,7 @@ export default function Home() {
   const { data: pornstars } = usePornstars()
   const { data: vids, loading: vidLoad } = useVideos(selectedCategory || undefined, selectedChannel || undefined, selectedModel || undefined, currentPage, orderBy)
   const { data: searchData, loading: searchLoad } = useSearch(searchQuery, searchPage)
+  const { suggestions } = useSearchSuggestions(searchQuery)
 
   const displayVids = searchQuery ? searchData?.videos : vids?.videos
   const displayLoad = searchQuery ? searchLoad : vidLoad
@@ -194,6 +197,17 @@ export default function Home() {
     if (p.get('view') === 'categories') setViewMode('categories')
     if (p.get('view') === 'channels') setViewMode('channels')
     if (p.get('order')) setOrderBy(p.get('order') || 'top-weekly')
+  }, [])
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const handleSelect = (type: 'category' | 'channel' | 'model', slug: string | null) => {
@@ -223,6 +237,18 @@ export default function Home() {
     setOrderBy(order)
     setCurrentPage(1)
     setShowOrderMenu(false)
+  }
+
+  const handleSuggestionClick = (suggestion: { type: 'category' | 'model' | 'channel'; name: string; slug: string }) => {
+    setShowSuggestions(false)
+    setSearchQuery('')
+    if (suggestion.type === 'category') {
+      handleSelect('category', suggestion.slug)
+    } else if (suggestion.type === 'model') {
+      handleSelect('model', suggestion.slug)
+    } else {
+      handleSelect('channel', suggestion.slug)
+    }
   }
 
   const getTitle = () => {
@@ -279,21 +305,46 @@ export default function Home() {
                 </Link>
               </nav>
 
-              {/* Search Bar - Flexible */}
-              <div className="flex-1 max-w-lg ml-auto">
+              {/* Search Bar - Flexible with Suggestions */}
+              <div className="flex-1 max-w-lg ml-auto" ref={searchRef}>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search videos..."
+                    onChange={e => { setSearchQuery(e.target.value); setShowSuggestions(true) }}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder="Search videos, categories, models..."
                     className="w-full pl-11 pr-10 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000] focus:ring-1 focus:ring-[#FF9000]/30 transition-all"
                   />
                   {searchQuery && (
-                    <button onClick={() => { setSearchQuery(''); setSearchPage(1) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                    <button onClick={() => { setSearchQuery(''); setSearchPage(1); setShowSuggestions(false) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
+                  )}
+
+                  {/* Search Suggestions Dropdown */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl shadow-xl z-50 overflow-hidden">
+                      <div className="p-2 text-xs text-gray-500 border-b border-[#2a2a2a]">
+                        Suggestions
+                      </div>
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={`${s.type}-${s.slug}-${i}`}
+                          onClick={() => handleSuggestionClick(s)}
+                          className="w-full px-4 py-3 text-left hover:bg-[#FF9000]/20 transition-colors flex items-center gap-3"
+                        >
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${s.type === 'category' ? 'bg-blue-500/20 text-blue-400' :
+                              s.type === 'model' ? 'bg-pink-500/20 text-pink-400' :
+                                'bg-green-500/20 text-green-400'
+                            }`}>
+                            {s.type === 'category' ? 'Category' : s.type === 'model' ? 'Model' : 'Channel'}
+                          </span>
+                          <span className="text-white text-sm">{s.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

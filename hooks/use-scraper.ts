@@ -15,6 +15,7 @@ export interface VideoItem {
   views: string
   viewsCount?: number
   rating?: string
+  uploader?: string
   url: string
   embedUrl?: string
   categories?: string[]
@@ -363,10 +364,14 @@ export function useVideoDetail(id: string) {
   return state
 }
 
-// Hook for recommended videos - dynamic with random ordering
+// Hook for recommended videos - dynamic with random ordering and load more
 export function useRecommendedVideos(currentVideoId: string, categories?: string[]) {
   const [videos, setVideos] = useState<VideoItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const [currentCategory, setCurrentCategory] = useState('')
+  const [currentOrder, setCurrentOrder] = useState('')
 
   useEffect(() => {
     const loadRecommended = async () => {
@@ -382,6 +387,11 @@ export function useRecommendedVideos(currentVideoId: string, categories?: string
         const randomOrder = orders[Math.floor(Math.random() * orders.length)]
         const randomPage = Math.floor(Math.random() * 5) + 1 // Pages 1-5
 
+        // Store for load more
+        setCurrentCategory(category)
+        setCurrentOrder(randomOrder)
+        setPage(randomPage)
+
         const result = await fetchVideos(category, randomPage, randomOrder)
 
         if (result?.videos) {
@@ -389,14 +399,17 @@ export function useRecommendedVideos(currentVideoId: string, categories?: string
           const filtered = result.videos
             .filter((v: VideoItem) => v?.id && v.id !== currentVideoId)
             .sort(() => Math.random() - 0.5) // Shuffle
-            .slice(0, 12)
+            .slice(0, 20) // Increased to 20
           setVideos(filtered)
+          setHasMore(result.hasMore || randomPage < 50)
         } else {
           setVideos([])
+          setHasMore(false)
         }
       } catch (error) {
         console.error('[Recommended] Error loading:', error)
         setVideos([])
+        setHasMore(false)
       }
 
       setLoading(false)
@@ -407,7 +420,35 @@ export function useRecommendedVideos(currentVideoId: string, categories?: string
     }
   }, [currentVideoId, categories])
 
-  return { videos, loading }
+  // Load more function - loads next page and appends videos
+  const loadMore = async () => {
+    if (!hasMore || loading) return
+
+    try {
+      const nextPage = page + 1
+      setPage(nextPage)
+
+      const result = await fetchVideos(currentCategory || 'trending', nextPage, currentOrder || 'top-weekly')
+
+      if (result?.videos) {
+        const existingIds = new Set(videos.map(v => v.id))
+        const newVideos = result.videos
+          .filter((v: VideoItem) => v?.id && v.id !== currentVideoId && !existingIds.has(v.id))
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 12)
+
+        setVideos(prev => [...prev, ...newVideos])
+        setHasMore(result.hasMore && newVideos.length > 0 && nextPage < 50)
+      } else {
+        setHasMore(false)
+      }
+    } catch (error) {
+      console.error('[Recommended] Error loading more:', error)
+      setHasMore(false)
+    }
+  }
+
+  return { videos, loading, hasMore, loadMore }
 }
 
 // Prefetch helpers
@@ -418,5 +459,44 @@ export function prefetchCategory(slug: string) {
 }
 export function prefetchChannel(s: string) { prefetchCategory(s) }
 export function prefetchModel(s: string) { prefetchCategory(s) }
+
+// Search suggestions - returns popular categories + models that match query
+export function useSearchSuggestions(query: string) {
+  const [suggestions, setSuggestions] = useState<{ type: 'category' | 'model' | 'channel'; name: string; slug: string }[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) {
+      setSuggestions([])
+      return
+    }
+
+    setLoading(true)
+    const lowerQuery = query.toLowerCase()
+
+    // Search in categories
+    const matchingCategories = popularCategories
+      .filter(c => c.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 3)
+      .map(c => ({ type: 'category' as const, name: c.name, slug: c.slug }))
+
+    // Search in models
+    const matchingModels = staticModels
+      .filter(m => m.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 3)
+      .map(m => ({ type: 'model' as const, name: m.name, slug: m.slug }))
+
+    // Search in channels
+    const matchingChannels = staticChannels
+      .filter(ch => ch.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 2)
+      .map(ch => ({ type: 'channel' as const, name: ch.name, slug: ch.slug }))
+
+    setSuggestions([...matchingCategories, ...matchingModels, ...matchingChannels])
+    setLoading(false)
+  }, [query])
+
+  return { suggestions, loading }
+}
 
 export { staticChannels, staticModels, popularCategories }

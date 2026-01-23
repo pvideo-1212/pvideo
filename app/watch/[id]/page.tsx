@@ -6,11 +6,21 @@ import Link from 'next/link'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
-import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock } from 'lucide-react'
+import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock, ChevronDown, User } from 'lucide-react'
 import { NativeAdBanner, MyBidBanner } from '@/components/ad-banner'
 import { HLSPlayer } from '@/components/hls-player'
 
-// Related video card with native img
+// Format view count to readable format
+function formatViews(views: string | number): string {
+  if (!views) return ''
+  const num = typeof views === 'string' ? parseInt(views.replace(/[^0-9]/g, '')) : views
+  if (isNaN(num)) return String(views)
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+  return String(num)
+}
+
+// Related video card with native img - Enhanced with complete details
 function RelatedVideoCard({ video }: { video: any }) {
   const [imgLoaded, setImgLoaded] = useState(false)
 
@@ -35,6 +45,10 @@ function RelatedVideoCard({ video }: { video: any }) {
             <Play className="w-6 h-6 text-gray-600" />
           </div>
         )}
+        {/* Quality Badge */}
+        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[#FF9000] rounded text-[10px] text-black font-bold">
+          HD
+        </span>
         {video.duration && (
           <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-xs text-white">
             {video.duration}
@@ -50,12 +64,26 @@ function RelatedVideoCard({ video }: { video: any }) {
         <h4 className="text-sm text-white font-medium group-hover:text-[#FF9000] line-clamp-2 transition-colors">
           {video.title}
         </h4>
+        {/* Enhanced Stats Row */}
         <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
-          {video.views && <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{video.views}</span>}
+          {video.views && (
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />{formatViews(video.views)}
+            </span>
+          )}
           {video.rating && parseFloat(video.rating) > 0 && (
-            <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />{video.rating}</span>
+            <span className="flex items-center gap-1 text-green-500">
+              <Star className="w-3 h-3 fill-current" />{video.rating}%
+            </span>
           )}
         </div>
+        {/* Uploader if available */}
+        {video.uploader && (
+          <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-500">
+            <User className="w-3 h-3" />
+            <span className="truncate">{video.uploader}</span>
+          </div>
+        )}
       </div>
     </Link>
   )
@@ -100,12 +128,19 @@ function WatchContent() {
   const id = params.id as string
 
   const { data: videoData, loading: isLoading, error } = useVideoDetail(id)
-  const { videos: recommendedVideos, loading: recommendedLoading } = useRecommendedVideos(
+  const { videos: recommendedVideos, loading: recommendedLoading, loadMore, hasMore } = useRecommendedVideos(
     id,
     videoData?.categories
   )
 
   const [liked, setLiked] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true)
+    await loadMore()
+    setLoadingMore(false)
+  }
 
   // Loading state with skeleton
   if (isLoading) {
@@ -324,7 +359,7 @@ function WatchContent() {
                 <RelatedVideosSkeleton />
               ) : recommendedVideos.length > 0 ? (
                 <>
-                  {/* 2-column grid on mobile */}
+                  {/* 2-column grid on mobile - Enhanced with complete details */}
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     {recommendedVideos.slice(0, 8).map(v => (
                       <Link key={v.id} href={`/watch/${v.id}`} className="group">
@@ -337,6 +372,10 @@ function WatchContent() {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           )}
+                          {/* Quality Badge */}
+                          <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[#FF9000] rounded text-[10px] text-black font-bold">
+                            HD
+                          </span>
                           {v.duration && (
                             <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[10px] text-white font-medium">
                               {v.duration}
@@ -351,25 +390,56 @@ function WatchContent() {
                         <h4 className="text-xs text-white font-medium line-clamp-2 mt-2 group-hover:text-[#FF9000] transition-colors">
                           {v.title}
                         </h4>
-                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
-                          {v.views && <span>{v.views} views</span>}
+                        {/* Enhanced stats with all details */}
+                        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[10px] text-gray-500">
+                          {v.views && (
+                            <span className="flex items-center gap-0.5">
+                              <Eye className="w-2.5 h-2.5" />{formatViews(v.views)}
+                            </span>
+                          )}
+                          {v.rating && parseFloat(v.rating) > 0 && (
+                            <span className="flex items-center gap-0.5 text-green-500">
+                              <Star className="w-2.5 h-2.5 fill-current" />{v.rating}%
+                            </span>
+                          )}
                         </div>
+                        {v.uploader && (
+                          <div className="text-[10px] text-gray-600 mt-0.5 truncate">
+                            {v.uploader}
+                          </div>
+                        )}
                       </Link>
                     ))}
                   </div>
 
-                  {/* Vertical list below horizontal scroll */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-400">Keep Watching</h4>
-                    {recommendedVideos.slice(12, 20).map(v => <RelatedVideoCard key={v.id} video={v} />)}
-                  </div>
+                  {/* Vertical list below horizontal scroll - Keep Watching */}
+                  {recommendedVideos.length > 8 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-gray-400">Keep Watching</h4>
+                      {recommendedVideos.slice(8).map(v => <RelatedVideoCard key={v.id} video={v} />)}
+                    </div>
+                  )}
 
-                  <Link
-                    href="/"
-                    className="flex items-center justify-center gap-2 py-4 mt-4 text-[#FF9000] text-sm font-medium hover:underline border-t border-[#2c2c2c]"
-                  >
-                    Browse More Videos
-                  </Link>
+                  {/* Load More Button - No redirect! */}
+                  {hasMore && (
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="flex items-center justify-center gap-2 py-4 mt-4 w-full text-[#FF9000] text-sm font-medium hover:bg-[#FF9000]/10 border-t border-[#2c2c2c] transition-colors disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Loading more...
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4" />
+                          Load More Videos
+                        </>
+                      )}
+                    </button>
+                  )}
                 </>
               ) : (
                 <p className="text-gray-500 text-sm">No recommended videos</p>
@@ -402,12 +472,27 @@ function WatchContent() {
                   </div>
 
                   {recommendedVideos.slice(5).map(v => <RelatedVideoCard key={v.id} video={v} />)}
-                  <Link
-                    href="/"
-                    className="flex items-center justify-center gap-2 py-3 text-[#FF9000] text-sm font-medium hover:underline"
-                  >
-                    Browse More Videos
-                  </Link>
+
+                  {/* Load More Button - Desktop Sidebar */}
+                  {hasMore && (
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="flex items-center justify-center gap-2 py-3 w-full text-[#FF9000] text-sm font-medium hover:bg-[#FF9000]/10 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4" />
+                          Load More Videos
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p className="text-gray-500 text-sm py-4 text-center">No recommended videos available</p>
