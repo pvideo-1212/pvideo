@@ -18,7 +18,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
   <title>Video Player</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -214,9 +218,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       class="video-frame" 
       src="https://www.eporner.com/embed/${id}/"
       allowfullscreen
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
-      referrerpolicy="no-referrer"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-top-navigation-by-user-activation"
+      referrerpolicy="origin"
+      loading="eager"
     ></iframe>
   </div>
   
@@ -225,13 +230,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     
+    // Detect mobile for longer timeout
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const timeoutDuration = isMobile ? 15000 : 8000; // 15s for mobile, 8s for desktop
+    
     let loadTimeout;
     
     // Set a timeout for loading
     loadTimeout = setTimeout(() => {
       loading.classList.add('hidden');
       error.classList.add('show');
-    }, 8000);
+    }, timeoutDuration);
     
     frame.onload = function() {
       clearTimeout(loadTimeout);
@@ -246,21 +255,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
       error.classList.add('show');
     };
     
-    // Block any attempts to navigate away from this page
-    window.addEventListener('beforeunload', function(e) {
-      e.preventDefault();
-      return false;
-    });
-    
-    // Intercept any clicks that might try to open eporner
-    document.addEventListener('click', function(e) {
-      const target = e.target;
-      if (target.tagName === 'A' && target.href && target.href.includes('eporner')) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    }, true);
+    // Mobile: Touch to activate video if autoplay is blocked
+    if (isMobile) {
+      document.body.addEventListener('touchstart', function activateVideo() {
+        // Try to trigger play via postMessage to iframe
+        try {
+          frame.contentWindow.postMessage({ action: 'play' }, '*');
+        } catch(e) {}
+        document.body.removeEventListener('touchstart', activateVideo);
+      }, { once: true, passive: true });
+    }
   </script>
 </body>
 </html>

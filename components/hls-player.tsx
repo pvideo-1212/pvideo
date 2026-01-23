@@ -21,8 +21,8 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
   const [loadTimeout, setLoadTimeout] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Direct eporner embed URL (bypass our wrapper for better mobile compatibility)
-  const embedUrl = `https://www.eporner.com/embed/${videoId}/`
+  // Use our local wrapper API for better mobile compatibility and control
+  const embedUrl = `/api/eporner/embed/${videoId}`
 
   // Detect mobile device
   useEffect(() => {
@@ -205,13 +205,17 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
               src={embedUrl}
               className="absolute inset-0 w-full h-full"
               allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
               frameBorder="0"
               scrolling="no"
               title={title}
               onLoad={handleIframeLoad}
               onError={handleIframeError}
               style={{ border: 'none' }}
+              // @ts-ignore - iOS specific attributes
+              playsInline
+              webkit-playsinline="true"
+              loading="eager"
             />
             {/* Fullscreen button overlay - hidden on mobile as video has its own controls */}
             {!isMobile && (

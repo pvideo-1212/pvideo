@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Search, X, Menu, Home, Grid3X3, Tv, User, Shield } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { X, Menu, Home, Grid3X3, Tv, User, Shield } from 'lucide-react'
+import SearchSuggestions from './search-suggestions'
 
 interface SiteHeaderProps {
   showSearch?: boolean
@@ -11,13 +13,25 @@ interface SiteHeaderProps {
 }
 
 export default function SiteHeader({ showSearch = true, searchValue = '', onSearchChange }: SiteHeaderProps) {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [localSearch, setLocalSearch] = useState(searchValue)
   const [showBanner, setShowBanner] = useState(true)
 
-  const handleSearch = (value: string) => {
-    setLocalSearch(value)
+  const handleSearch = (value: string, type?: 'model' | 'category' | 'keyword') => {
     onSearchChange?.(value)
+
+    if (!value) return
+
+    // Route based on suggestion type
+    if (type === 'model') {
+      const slug = value.toLowerCase().replace(/\s+/g, '-')
+      router.push(`/pornstars/${encodeURIComponent(slug)}`)
+    } else if (type === 'category') {
+      router.push(`/?category=${encodeURIComponent(value)}`)
+    } else {
+      // Default: search/keyword - go to home with search param
+      router.push(`/?search=${encodeURIComponent(value)}`)
+    }
   }
 
   return (
@@ -49,27 +63,14 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
               <span className="text-xl font-extrabold bg-[#FF9000] text-black px-1.5 py-0.5 rounded ml-0.5 tracking-tight">hub</span>
             </Link>
 
-            {/* Search Bar - Desktop */}
+            {/* Search Bar with Smart Suggestions - Desktop */}
             {showSearch && (
               <div className="flex-1 max-w-lg hidden md:block">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    value={localSearch}
-                    onChange={e => handleSearch(e.target.value)}
-                    placeholder="Search videos..."
-                    className="w-full pl-11 pr-10 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000] transition-colors"
-                  />
-                  {localSearch && (
-                    <button
-                      onClick={() => handleSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1 rounded-full hover:bg-white/10"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+                <SearchSuggestions
+                  placeholder="Search models, categories..."
+                  onSearch={handleSearch}
+                  initialValue={searchValue}
+                />
               </div>
             )}
 
@@ -98,19 +99,14 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
             </button>
           </div>
 
-          {/* Mobile Search */}
+          {/* Mobile Search with Smart Suggestions */}
           {showSearch && (
             <div className="md:hidden mt-3">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={localSearch}
-                  onChange={e => handleSearch(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full pl-11 pr-4 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000]"
-                />
-              </div>
+              <SearchSuggestions
+                placeholder="Search models, categories..."
+                onSearch={handleSearch}
+                initialValue={searchValue}
+              />
             </div>
           )}
         </div>
@@ -136,3 +132,4 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
     </div>
   )
 }
+
