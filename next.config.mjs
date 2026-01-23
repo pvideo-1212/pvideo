@@ -1,6 +1,10 @@
 const nextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  // Experimental features
+  experimental: {
+    scrollRestoration: true,
+  },
   // Optimize images
   images: {
     remotePatterns: [

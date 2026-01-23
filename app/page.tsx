@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel } from '@/hooks/use-scraper'
 import SiteFooter from '@/components/site-footer'
 import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
-import { AdBanner } from '@/components/ad-banner'
+import { AdBanner, MyBidBanner } from '@/components/ad-banner'
 
 // Video Card with native img for better performance
 function VideoCard({ video }: { video: any }) {
@@ -445,9 +445,10 @@ export default function Home() {
                 {displayVids.slice(0, 8).map(v => <VideoCard key={v.id} video={v} />)}
               </div>
 
-              {/* Ad Banner after first 8 videos */}
+              {/* Ad Banners after first 8 videos */}
               {displayVids.length > 8 && (
-                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4">
+                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4 space-y-3">
+                  <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
                   <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
                 </div>
               )}
@@ -459,9 +460,10 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Ad Banner after 16 videos */}
+              {/* Ad Banners after 16 videos */}
               {displayVids.length > 16 && (
-                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4">
+                <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4 space-y-3">
+                  <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
                   <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
                 </div>
               )}

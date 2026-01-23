@@ -7,7 +7,8 @@ import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
 import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock } from 'lucide-react'
-import { NativeAdBanner } from '@/components/ad-banner'
+import { NativeAdBanner, MyBidBanner } from '@/components/ad-banner'
+import { HLSPlayer } from '@/components/hls-player'
 
 // Related video card with native img
 function RelatedVideoCard({ video }: { video: any }) {
@@ -155,8 +156,9 @@ function WatchContent() {
       </div>
     )
   }
-  // Use embed API that shows VPN suggestion for India
-  const embedUrl = `/api/eporner/embed/${id}`
+
+  // Use the actual Eporner embed URL from video data
+  const embedUrl = videoData.embedUrl || `https://www.eporner.com/embed/${id}/`
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -166,34 +168,46 @@ function WatchContent() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-4">
-            {/* Video Player - Embed with VPN suggestion fallback */}
-            <div className="bg-black rounded-xl overflow-hidden shadow-2xl">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={embedUrl}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  title={videoData.title}
-                />
-              </div>
-            </div>
+            {/* Video Player - HLS Player with Mobile Support */}
+            <HLSPlayer
+              videoId={id}
+              title={videoData.title || 'Video'}
+              thumbnail={videoData.thumbnail}
+            />
 
-            {/* Video Info - Compact on Mobile */}
-            <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-3 sm:p-5">
-              <h1 className="text-base sm:text-xl font-bold text-white leading-tight">{videoData.title || 'Untitled Video'}</h1>
+            {/* Video Info - Improved Mobile Layout */}
+            <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sm:p-5">
+              <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">{videoData.title || 'Untitled Video'}</h1>
 
-              {/* Mobile: Inline Stats Row */}
-              <div className="flex flex-wrap items-center gap-3 mt-2 sm:hidden text-xs text-gray-400">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5 text-[#FF9000]" />{videoData.views || '0'} views
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />{videoData.rating || '0'}%
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-blue-500" />{videoData.duration || '--:--'}
-                </span>
+              {/* Mobile: Stats + Actions */}
+              <div className="sm:hidden mt-4 space-y-4">
+                {/* Stats Row */}
+                <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-400">
+                  <span className="flex items-center gap-1.5">
+                    <Eye className="w-4 h-4 text-[#FF9000]" />{videoData.views || '0'} views
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />{videoData.rating || '0'}%
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-blue-400" />{videoData.duration || '--:--'}
+                  </span>
+                </div>
+
+                {/* Mobile Action Buttons - Full Width with 44px+ height */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setLiked(!liked)}
+                    className={`flex-1 h-12 rounded-xl flex items-center justify-center gap-2 font-medium transition-all ${liked ? 'bg-[#FF9000] text-black' : 'bg-[#2c2c2c] text-white active:bg-[#3c3c3c]'}`}
+                  >
+                    <ThumbsUp className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+                    <span>{liked ? 'Liked!' : 'Like'}</span>
+                  </button>
+                  <button className="flex-1 h-12 rounded-xl bg-[#2c2c2c] text-white flex items-center justify-center gap-2 font-medium active:bg-[#3c3c3c] transition-colors">
+                    <Share2 className="w-5 h-5" />
+                    <span>Share</span>
+                  </button>
+                </div>
               </div>
 
               {/* Desktop: Stats Cards Row */}
@@ -236,8 +250,8 @@ function WatchContent() {
                 </div>
               )}
 
-              {/* Actions - Smaller on mobile */}
-              <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#2c2c2c]">
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex flex-wrap gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#2c2c2c]">
                 <button
                   onClick={() => setLiked(!liked)}
                   className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-full flex items-center gap-1.5 sm:gap-2 transition-all font-medium text-xs sm:text-sm ${liked ? 'bg-[#FF9000] text-black shadow-lg shadow-[#FF9000]/20' : 'bg-[#2c2c2c] text-white hover:bg-[#3c3c3c]'}`}
@@ -251,18 +265,18 @@ function WatchContent() {
               </div>
             </div>
 
-            {/* Categories Section */}
+            {/* Categories Section - Improved Mobile */}
             {videoData.categories && videoData.categories.length > 0 && (
               <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4">
                 <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                   <Tag className="w-4 h-4 text-[#FF9000]" />Tags & Categories
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5">
                   {videoData.categories.map((cat: string) => (
                     <Link
                       key={cat}
                       href={`/?category=${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="px-3 py-1.5 bg-[#2c2c2c] rounded-full text-sm text-gray-300 hover:bg-[#FF9000] hover:text-black transition-colors"
+                      className="px-4 py-2 bg-[#2c2c2c] rounded-full text-sm text-gray-300 hover:bg-[#FF9000] hover:text-black transition-colors active:scale-95"
                     >
                       {cat}
                     </Link>
@@ -301,7 +315,7 @@ function WatchContent() {
               </div>
             )}
 
-            {/* Mobile Related Videos - Horizontal Scroll */}
+            {/* Mobile Related Videos - 2 Column Grid */}
             <div className="lg:hidden">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <Film className="w-5 h-5 text-[#FF9000]" />More Videos For You
@@ -310,40 +324,38 @@ function WatchContent() {
                 <RelatedVideosSkeleton />
               ) : recommendedVideos.length > 0 ? (
                 <>
-                  {/* Horizontal scroll grid on mobile */}
-                  <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mb-6">
-                    <div className="flex gap-3" style={{ width: 'max-content' }}>
-                      {recommendedVideos.slice(0, 12).map(v => (
-                        <Link key={v.id} href={`/watch/${v.id}`} className="group flex-shrink-0 w-40">
-                          <div className="relative aspect-video rounded-lg overflow-hidden bg-[#2c2c2c]">
-                            {v.thumbnail && (
-                              <img
-                                src={v.thumbnail}
-                                alt=""
-                                loading="lazy"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                              />
-                            )}
-                            {v.duration && (
-                              <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[10px] text-white font-medium">
-                                {v.duration}
-                              </span>
-                            )}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                              <div className="w-10 h-10 rounded-full bg-[#FF9000] flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all">
-                                <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                              </div>
+                  {/* 2-column grid on mobile */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    {recommendedVideos.slice(0, 8).map(v => (
+                      <Link key={v.id} href={`/watch/${v.id}`} className="group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden bg-[#2c2c2c]">
+                          {v.thumbnail && (
+                            <img
+                              src={v.thumbnail}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          )}
+                          {v.duration && (
+                            <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[10px] text-white font-medium">
+                              {v.duration}
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-[#FF9000] flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all">
+                              <Play className="w-5 h-5 text-black fill-black ml-0.5" />
                             </div>
                           </div>
-                          <h4 className="text-xs text-white font-medium line-clamp-2 mt-2 group-hover:text-[#FF9000] transition-colors">
-                            {v.title}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
-                            {v.views && <span>{v.views} views</span>}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                        </div>
+                        <h4 className="text-xs text-white font-medium line-clamp-2 mt-2 group-hover:text-[#FF9000] transition-colors">
+                          {v.title}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
+                          {v.views && <span>{v.views} views</span>}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
 
                   {/* Vertical list below horizontal scroll */}
@@ -368,8 +380,9 @@ function WatchContent() {
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-[400px] shrink-0 space-y-4">
             <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4 sticky top-20">
-              {/* Ad Banner - Top of Sidebar */}
-              <div className="mb-4 rounded-lg overflow-hidden bg-[#252525] min-h-[90px]">
+              {/* Ad Banners - Top of Sidebar */}
+              <div className="mb-4 rounded-lg overflow-hidden bg-[#252525] min-h-[90px] space-y-2">
+                <MyBidBanner bannerId="2015213" className="w-full" />
                 <NativeAdBanner zoneId="5805148" className="w-full" />
               </div>
 
@@ -382,8 +395,9 @@ function WatchContent() {
                 <div className="space-y-3">
                   {recommendedVideos.slice(0, 5).map(v => <RelatedVideoCard key={v.id} video={v} />)}
 
-                  {/* Ad Banner - Middle of sidebar */}
-                  <div className="py-2 rounded-lg overflow-hidden bg-[#252525] min-h-[90px]">
+                  {/* Ad Banners - Middle of sidebar */}
+                  <div className="py-2 rounded-lg overflow-hidden bg-[#252525] min-h-[90px] space-y-2">
+                    <MyBidBanner bannerId="2015214" className="w-full" />
                     <NativeAdBanner zoneId="5805148" className="w-full" />
                   </div>
 

@@ -70,3 +70,28 @@ export function NativeAdBanner({ zoneId = "5805148", className = '' }: { zoneId?
 export function DefaultAd({ className }: { className?: string }) {
   return <AdBanner zoneId="5805148" className={className} />
 }
+
+// MyBid.io Banner Component
+// Uses id attribute to mount banner - MyBid script looks for elements by id
+export function MyBidBanner({ bannerId, className = '' }: { bannerId: string, className?: string }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render on server to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className={`mybid-banner ${className}`} style={{ minHeight: '90px' }}>
+        {/* Placeholder during SSR */}
+      </div>
+    )
+  }
+
+  return (
+    <div className={`mybid-banner ${className}`}>
+      <div id={bannerId} data-banner-id={bannerId} />
+    </div>
+  )
+}

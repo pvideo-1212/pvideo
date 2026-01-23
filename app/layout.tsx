@@ -181,6 +181,25 @@ export default function RootLayout({
           `}
         </Script>
 
+        {/* MyBid.io Ad Network */}
+        <Script
+          async
+          src="https://js.mbidadm.com/static/scripts.js"
+          data-admpid="417879"
+          strategy="afterInteractive"
+        />
+        <Script id="mybid-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('MyBid SW registered:', registration.scope);
+              }).catch(function(err) {
+                console.log('MyBid SW failed:', err);
+              });
+            }
+          `}
+        </Script>
+
         {/* Additional SEO Meta Tags */}
         <meta name="geo.region" content="US" />
         <meta name="geo.placename" content="United States" />

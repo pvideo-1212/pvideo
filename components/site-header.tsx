@@ -13,6 +13,7 @@ interface SiteHeaderProps {
 export default function SiteHeader({ showSearch = true, searchValue = '', onSearchChange }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [localSearch, setLocalSearch] = useState(searchValue)
+  const [showBanner, setShowBanner] = useState(true)
 
   const handleSearch = (value: string) => {
     setLocalSearch(value)
@@ -22,13 +23,22 @@ export default function SiteHeader({ showSearch = true, searchValue = '', onSear
   return (
     <div className="sticky top-0 z-50">
       {/* VPN Banner - Compact on mobile */}
-      <div className="bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-1.5 sm:py-2 px-3 sm:px-4">
-        <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
-          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span className="hidden sm:inline">🔒 Use a VPN for better experience and privacy</span>
-          <span className="sm:hidden">🔒 Use VPN for best experience</span>
+      {showSearch && showBanner && (
+        <div className="relative bg-gradient-to-r from-[#FF9000] via-[#FFa030] to-[#FF9000] text-black py-1.5 sm:py-2 px-3 sm:px-4">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium pr-6">
+            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="hidden sm:inline">🔒 Use a VPN for better experience and privacy</span>
+            <span className="sm:hidden truncate">🔒 Use VPN for best experience</span>
+          </div>
+          <button
+            onClick={() => setShowBanner(false)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-black/10 rounded-full"
+            aria-label="Close banner"
+          >
+            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          </button>
         </div>
-      </div>
+      )}
 
       <header className="bg-[#0d0d0d]/95 backdrop-blur-md border-b border-[#1f1f1f]">
         <div className="max-w-[1600px] mx-auto px-4 py-3">

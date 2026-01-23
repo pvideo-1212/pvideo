@@ -215,7 +215,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       src="https://www.eporner.com/embed/${id}/"
       allowfullscreen
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
+      referrerpolicy="no-referrer"
     ></iframe>
   </div>
   
@@ -244,6 +245,22 @@ export async function GET(request: NextRequest, context: RouteContext) {
       loading.classList.add('hidden');
       error.classList.add('show');
     };
+    
+    // Block any attempts to navigate away from this page
+    window.addEventListener('beforeunload', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // Intercept any clicks that might try to open eporner
+    document.addEventListener('click', function(e) {
+      const target = e.target;
+      if (target.tagName === 'A' && target.href && target.href.includes('eporner')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
   </script>
 </body>
 </html>
