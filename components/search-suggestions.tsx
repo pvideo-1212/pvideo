@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { Search, X, User, TrendingUp, Star, Sparkles, Tag, Film, Grid3X3 } from 'lucide-react'
 import modelsData from '@/models.json'
-import { CATEGORY_KEYWORDS, TRENDING_KEYWORDS, getPopularSearches } from '@/lib/seo-keywords'
 
 interface Model {
   name: string
@@ -36,17 +35,28 @@ const topModels: Model[] = (modelsData.models as Model[])
   .sort((a, b) => b.videoCount - a.videoCount)
   .slice(0, 100)
 
-// Get categories from the SEO keywords
-const categories = Object.keys(CATEGORY_KEYWORDS).map(cat => ({
+// Categories defined inline (client-safe, no fs dependency)
+const CATEGORIES = [
+  'amateur', 'milf', 'teen', 'lesbian', 'anal', 'asian', 'ebony', 'latina',
+  'blonde', 'brunette', 'threesome', 'pov', 'hd', 'creampie', 'blowjob',
+  'massage', 'hardcore', 'fetish', 'bdsm', 'mature', 'redhead', 'interracial',
+  'big tits', 'big ass', 'petite', 'curvy', 'college', 'stepmom', 'stepsister'
+]
+
+// Get categories for display
+const categories = CATEGORIES.map(cat => ({
   name: cat.charAt(0).toUpperCase() + cat.slice(1),
   key: cat
 }))
 
-// Get popular searches for quick access
-const popularSearches = getPopularSearches()
-
-// Get trending keywords for suggestions
-const trendingTerms = TRENDING_KEYWORDS.slice(0, 20)
+// Popular searches defined inline (client-safe)
+const popularSearches = [
+  'milf', 'teen', 'lesbian', 'anal', 'amateur', 'asian', 'ebony', 'latina',
+  'blonde', 'brunette', 'big tits', 'big ass', 'pov', 'creampie', 'threesome',
+  'blowjob', 'hardcore', 'massage', 'stepmom', 'stepsister', 'college',
+  'mature', 'hd', '4k', 'romantic', 'rough', 'bbc', 'interracial', 'japanese',
+  'korean', 'indian', 'european', 'russian', 'german', 'french', 'british',
+]
 
 export function SearchSuggestions({
   className = '',
@@ -313,8 +323,8 @@ export function SearchSuggestions({
             <button
               onClick={() => setActiveTab('all')}
               className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${activeTab === 'all'
-                  ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               All
@@ -322,8 +332,8 @@ export function SearchSuggestions({
             <button
               onClick={() => setActiveTab('models')}
               className={`flex-1 px-3 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1 ${activeTab === 'models'
-                  ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               <User className="w-3 h-3" />
@@ -332,8 +342,8 @@ export function SearchSuggestions({
             <button
               onClick={() => setActiveTab('categories')}
               className={`flex-1 px-3 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1 ${activeTab === 'categories'
-                  ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-[#FF9000] border-b-2 border-[#FF9000] bg-[#FF9000]/5'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               <Grid3X3 className="w-3 h-3" />
@@ -373,8 +383,8 @@ export function SearchSuggestions({
                   href={href}
                   onClick={() => handleSelectSuggestion(suggestion)}
                   className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${index === selectedIndex
-                      ? 'bg-[#FF9000]/10 text-white'
-                      : 'hover:bg-white/5 text-gray-300 hover:text-white'
+                    ? 'bg-[#FF9000]/10 text-white'
+                    : 'hover:bg-white/5 text-gray-300 hover:text-white'
                     }`}
                 >
                   {/* Avatar/Icon */}
@@ -402,8 +412,8 @@ export function SearchSuggestions({
                     <div className="font-medium text-sm truncate">{suggestion.label}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${suggestion.type === 'model' ? 'bg-[#FF9000]/20 text-[#FF9000]' :
-                          suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
-                            'bg-blue-500/20 text-blue-400'
+                        suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
+                          'bg-blue-500/20 text-blue-400'
                         }`}>
                         {getTypeLabel(suggestion.type)}
                       </span>
