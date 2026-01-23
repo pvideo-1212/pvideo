@@ -7,7 +7,36 @@ import SiteFooter from '@/components/site-footer'
 import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
 import { AdBanner, MyBidBanner } from '@/components/ad-banner'
 
-// Video Card with native img for better performance
+// Helper function to get quality badge info
+function getQualityInfo(video: any): { label: string; class: string } | null {
+  // Try to detect quality from various sources
+  const title = video.title?.toLowerCase() || ''
+  const quality = video.quality || ''
+
+  if (title.includes('4k') || title.includes('2160p') || quality.includes('4k') || quality.includes('2160')) {
+    return { label: '4K', class: 'quality-badge-4k' }
+  }
+  if (title.includes('1080p') || title.includes('1080') || quality.includes('1080')) {
+    return { label: 'HD', class: 'quality-badge-hd' }
+  }
+  if (title.includes('720p') || title.includes('720') || quality.includes('720') || quality.includes('hd')) {
+    return { label: 'HD', class: 'quality-badge-hd' }
+  }
+  // Default to HD for most videos (as Eporner mostly serves HD)
+  return { label: 'HD', class: 'quality-badge-hd' }
+}
+
+// Format view count to readable format
+function formatViews(views: string | number): string {
+  if (!views) return ''
+  const num = typeof views === 'string' ? parseInt(views.replace(/[^0-9]/g, '')) : views
+  if (isNaN(num)) return String(views)
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+  return String(num)
+}
+
+// Premium Video Card with quality badges, glow effects, and improved styling
 function VideoCard({ video }: { video: any }) {
   const [currentThumb, setCurrentThumb] = useState(0)
   const [isHovering, setIsHovering] = useState(false)
@@ -15,13 +44,14 @@ function VideoCard({ video }: { video: any }) {
 
   const id = video.id
   const thumbs = video.thumbs?.length > 0 ? video.thumbs : [video.thumbnail]
+  const qualityInfo = getQualityInfo(video)
 
   useEffect(() => {
     if (!isHovering || thumbs.length <= 1) return
 
     const interval = setInterval(() => {
       setCurrentThumb(prev => (prev + 1) % thumbs.length)
-    }, 800)
+    }, 600) // Slightly faster for smoother preview
 
     return () => clearInterval(interval)
   }, [isHovering, thumbs.length])
@@ -29,11 +59,20 @@ function VideoCard({ video }: { video: any }) {
   return (
     <Link
       href={`/watch/${id}`}
-      className="group block bg-[#1a1a1a] rounded-xl overflow-hidden border border-[#2a2a2a] hover:border-[#FF9000]/60 transition-all duration-300 hover:shadow-lg hover:shadow-[#FF9000]/10 hover:-translate-y-0.5"
+      className="video-card group block"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => { setIsHovering(false); setCurrentThumb(0) }}
     >
+      {/* Thumbnail Container */}
       <div className="relative aspect-video bg-[#0d0d0d] overflow-hidden">
+        {/* Quality Badge */}
+        {qualityInfo && (
+          <div className={`quality-badge ${qualityInfo.class}`}>
+            {qualityInfo.label}
+          </div>
+        )}
+
+        {/* Thumbnail Image */}
         {thumbs[currentThumb] ? (
           <>
             {!imgLoaded && (
@@ -44,7 +83,8 @@ function VideoCard({ video }: { video: any }) {
               alt=""
               loading="lazy"
               onLoad={() => setImgLoaded(true)}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              className={`w-full h-full object-cover transition-transform duration-500 ${isHovering ? 'scale-110' : 'scale-100'
+                } ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             />
           </>
         ) : (
@@ -52,40 +92,55 @@ function VideoCard({ video }: { video: any }) {
             <Play className="w-10 h-10 text-gray-700" />
           </div>
         )}
+
+        {/* Duration Badge */}
         {video.duration && (
-          <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/90 backdrop-blur-sm rounded text-xs font-semibold text-white">
+          <div className="duration-badge text-white">
             {video.duration}
           </div>
         )}
-        {/* Thumb indicator dots */}
+
+        {/* Preview Progress Indicator (shows during hover) */}
         {thumbs.length > 1 && isHovering && (
-          <div className="absolute bottom-2 left-2 flex gap-1">
-            {thumbs.slice(0, 5).map((_: string, i: number) => (
-              <div
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${i === currentThumb % 5 ? 'bg-[#FF9000]' : 'bg-white/50'}`}
-              />
-            ))}
+          <div className="preview-progress">
+            <div
+              className="preview-progress-bar"
+              style={{ width: `${((currentThumb + 1) / thumbs.length) * 100}%` }}
+            />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-[#FF9000] flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-300 shadow-lg shadow-[#FF9000]/30">
+
+        {/* Play Button Overlay */}
+        <div className="play-overlay">
+          <div className="play-button">
             <Play className="w-7 h-7 text-black fill-black ml-1" />
           </div>
         </div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </div>
-      <div className="p-2 sm:p-3">
-        <h3 className="font-medium text-white text-xs sm:text-sm line-clamp-2 group-hover:text-[#FF9000] transition-colors leading-snug">{video.title}</h3>
-        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-gray-500">
+
+      {/* Video Info */}
+      <div className="video-info">
+        <h3 className="video-title">{video.title}</h3>
+
+        <div className="video-stats">
           {video.views && (
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{video.views}
+            <span className="video-stat">
+              <Eye className="w-3.5 h-3.5" />
+              {formatViews(video.views)}
             </span>
           )}
           {video.rating && parseFloat(video.rating) > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-yellow-500 text-yellow-500" />{video.rating}
+            <span className="video-stat text-green-500">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              {video.rating}%
+            </span>
+          )}
+          {video.uploader && (
+            <span className="uploader-badge ml-auto">
+              {video.uploader}
             </span>
           )}
         </div>
@@ -181,7 +236,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[#0a0a0a] overflow-x-hidden">
 
       {/* Sticky Header Container with VPN Banner */}
       <div className="sticky top-0 z-50">

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Play, Maximize, Minimize, Loader2, Shield, RefreshCw } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Play, Maximize, Minimize, Loader2, Shield, RefreshCw, Volume2, VolumeX, AlertCircle } from 'lucide-react'
 
 interface HLSPlayerProps {
   videoId: string
@@ -14,36 +14,44 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [showPlayer, setShowPlayer] = useState(false)
   const [embedFailed, setEmbedFailed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [loadTimeout, setLoadTimeout] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Use our own embed route which wraps Eporner embed
-  const embedUrl = `/api/eporner/embed/${videoId}`
+  // Direct eporner embed URL (bypass our wrapper for better mobile compatibility)
+  const embedUrl = `https://www.eporner.com/embed/${videoId}/`
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handlePlay = () => {
     setShowPlayer(true)
     setIsLoading(true)
     setEmbedFailed(false)
+    setLoadTimeout(false)
+
+    // Set timeout for mobile - if takes too long, show VPN message
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        setLoadTimeout(true)
+      }
+    }, 12000) // 12 seconds timeout
+
+    return () => clearTimeout(timeout)
   }
 
   const handleIframeLoad = () => {
     setIsLoading(false)
-
-    // Set a timeout to detect if the embed is working
-    // If after 8 seconds and still loading state visible, show VPN banner
-    setTimeout(() => {
-      // Check if iframe content might be blocked
-      try {
-        if (iframeRef.current) {
-          // We can't actually access cross-origin content, 
-          // but we can detect loading issues via timeout
-        }
-      } catch {
-        // Cross-origin, expected
-      }
-    }, 8000)
   }
 
   const handleIframeError = () => {
@@ -63,27 +71,36 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
         setIsFullscreen(true)
       }
     } catch (error) {
-      console.error('Fullscreen error:', error)
+      // Fallback for iOS - open in new tab
+      if (isMobile) {
+        window.open(embedUrl, '_blank')
+      }
     }
   }
 
   const handleRetry = () => {
     setEmbedFailed(false)
+    setLoadTimeout(false)
     setIsLoading(true)
     // Force iframe reload
     if (iframeRef.current) {
-      iframeRef.current.src = embedUrl
+      iframeRef.current.src = embedUrl + '?t=' + Date.now()
     }
+  }
+
+  const openInNewTab = () => {
+    window.open(embedUrl, '_blank')
   }
 
   return (
     <div
       ref={containerRef}
-      className="relative bg-black rounded-xl overflow-hidden shadow-2xl group"
+      className={`relative bg-black overflow-hidden shadow-2xl ${isFullscreen ? '' : 'rounded-xl'}`}
     >
+      {/* 16:9 Aspect Ratio Container */}
       <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
         {!showPlayer ? (
-          // Thumbnail with play button
+          // Thumbnail with play button - Mobile optimized
           <>
             {thumbnail && (
               <img
@@ -94,66 +111,92 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
             )}
             <button
               onClick={handlePlay}
-              className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 hover:bg-black/50 transition-colors cursor-pointer"
+              className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 active:bg-black/60 transition-colors cursor-pointer touch-manipulation"
             >
-              <div className="w-20 h-20 bg-[#FF9000] rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg">
-                <Play className="w-10 h-10 text-black ml-1" fill="currentColor" />
+              <div className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} bg-[#FF9000] rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shadow-lg shadow-[#FF9000]/30`}>
+                <Play className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} text-black ml-1`} fill="currentColor" />
               </div>
             </button>
-            {/* Fullscreen button */}
-            <button
-              onClick={toggleFullscreen}
-              className="absolute bottom-4 right-4 p-2 bg-black/60 hover:bg-black/80 rounded-lg transition-colors opacity-0 group-hover:opacity-100 z-20"
-            >
-              <Maximize className="w-5 h-5 text-white" />
-            </button>
+
+            {/* Mobile-friendly fullscreen hint */}
+            {isMobile && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 rounded-full text-xs text-white/80">
+                Tap to play
+              </div>
+            )}
           </>
-        ) : embedFailed ? (
-          // VPN Required Banner
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#0d0d0d] p-6 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#FF9000] to-[#FF6000] rounded-full flex items-center justify-center mb-6">
-              <Shield className="w-10 h-10 text-white" />
+        ) : (embedFailed || loadTimeout) ? (
+          // VPN Required Banner - Mobile optimized
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#0d0d0d] p-4 sm:p-6 text-center overflow-y-auto">
+            <div className={`${isMobile ? 'w-14 h-14' : 'w-20 h-20'} bg-gradient-to-br from-[#FF9000] to-[#FF6000] rounded-full flex items-center justify-center mb-4 sm:mb-6 shrink-0`}>
+              {loadTimeout ? (
+                <AlertCircle className={`${isMobile ? 'w-7 h-7' : 'w-10 h-10'} text-white`} />
+              ) : (
+                <Shield className={`${isMobile ? 'w-7 h-7' : 'w-10 h-10'} text-white`} />
+              )}
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-3">VPN Required</h3>
-            <p className="text-gray-400 text-sm mb-6 max-w-sm">
-              This video requires a VPN to play in your region. Connect to a VPN server outside India and try again.
+            <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-2`}>
+              {loadTimeout ? 'Video Loading Slowly' : 'VPN Required'}
+            </h3>
+            <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'} mb-4 max-w-sm px-2`}>
+              {loadTimeout
+                ? 'The video is taking too long to load. Try using a VPN or open in new tab.'
+                : 'This video requires a VPN to play in your region.'}
             </p>
 
-            <div className="bg-[#FF9000]/10 border border-[#FF9000]/30 rounded-xl p-4 mb-6 max-w-sm">
-              <h4 className="text-[#FF9000] font-semibold text-sm mb-3">How to watch:</h4>
-              <ol className="text-gray-300 text-sm text-left space-y-2">
+            {/* Compact steps for mobile */}
+            <div className="bg-[#FF9000]/10 border border-[#FF9000]/30 rounded-xl p-3 sm:p-4 mb-4 max-w-sm w-full shrink-0">
+              <h4 className="text-[#FF9000] font-semibold text-xs sm:text-sm mb-2">How to watch:</h4>
+              <ol className={`text-gray-300 ${isMobile ? 'text-xs' : 'text-sm'} text-left space-y-1.5`}>
                 <li className="flex items-start gap-2">
                   <span className="text-[#FF9000] font-bold">1.</span>
-                  Install a VPN browser extension
+                  <span>Install VPN (NordVPN, ExpressVPN)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#FF9000] font-bold">2.</span>
-                  Connect to USA, UK, or EU server
+                  <span>Connect to USA/UK/EU server</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#FF9000] font-bold">3.</span>
-                  Click the refresh button below
+                  <span>Tap refresh or open in new tab</span>
                 </li>
               </ol>
             </div>
 
-            <button
-              onClick={handleRetry}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#FF9000] to-[#FF6000] text-black font-semibold rounded-full hover:scale-105 transition-transform shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5" />
-              Refresh After VPN
-            </button>
+            {/* Action buttons - stacked on mobile */}
+            <div className={`flex ${isMobile ? 'flex-col w-full max-w-xs' : 'flex-row'} gap-2 sm:gap-3`}>
+              <button
+                onClick={handleRetry}
+                className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#FF9000] to-[#FF6000] text-black font-semibold rounded-full active:scale-95 transition-transform shadow-lg ${isMobile ? 'text-sm' : ''}`}
+              >
+                <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
+                Refresh
+              </button>
+              <button
+                onClick={openInNewTab}
+                className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#2c2c2c] text-white font-semibold rounded-full active:scale-95 transition-colors border border-[#3c3c3c] ${isMobile ? 'text-sm' : ''}`}
+              >
+                Open in New Tab
+              </button>
+            </div>
           </div>
         ) : (
-          // Embed player
+          // Embed player - Direct eporner embed for better mobile compatibility
           <>
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-12 h-12 text-[#FF9000] animate-spin" />
-                  <span className="text-white text-sm">Loading player...</span>
+                  <Loader2 className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} text-[#FF9000] animate-spin`} />
+                  <span className={`text-white ${isMobile ? 'text-xs' : 'text-sm'}`}>Loading player...</span>
+                  {isMobile && (
+                    <button
+                      onClick={openInNewTab}
+                      className="mt-2 text-xs text-[#FF9000] underline"
+                    >
+                      Taking too long? Open in browser
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -169,15 +212,16 @@ export function HLSPlayer({ videoId, title, thumbnail }: HLSPlayerProps) {
               onLoad={handleIframeLoad}
               onError={handleIframeError}
               style={{ border: 'none' }}
-              sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
             />
-            {/* Fullscreen button overlay */}
-            <button
-              onClick={toggleFullscreen}
-              className="absolute bottom-4 right-4 p-2 bg-black/60 hover:bg-black/80 rounded-lg transition-colors opacity-0 group-hover:opacity-100 z-20"
-            >
-              {isFullscreen ? <Minimize className="w-5 h-5 text-white" /> : <Maximize className="w-5 h-5 text-white" />}
-            </button>
+            {/* Fullscreen button overlay - hidden on mobile as video has its own controls */}
+            {!isMobile && (
+              <button
+                onClick={toggleFullscreen}
+                className="absolute bottom-4 right-4 p-2 bg-black/60 hover:bg-black/80 rounded-lg transition-colors opacity-0 group-hover:opacity-100 z-20"
+              >
+                {isFullscreen ? <Minimize className="w-5 h-5 text-white" /> : <Maximize className="w-5 h-5 text-white" />}
+              </button>
+            )}
           </>
         )}
       </div>

@@ -139,6 +139,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 
   /* Smooth scrolling */
@@ -397,7 +402,6 @@
   }
 }
 
-/* Button animations */
 @layer components {
   .btn-premium {
     @apply relative overflow-hidden transition-all duration-300;
@@ -416,5 +420,141 @@
 
   .btn-premium span {
     @apply relative z-10;
+  }
+
+  /* Premium Video Card Styles */
+  .video-card {
+    @apply relative bg-[#1a1a1a] rounded-xl overflow-hidden border border-[#2a2a2a] transition-all duration-300;
+  }
+
+  .video-card:hover {
+    @apply border-[#FF9000]/60 -translate-y-1;
+    box-shadow: 0 10px 40px rgba(255, 144, 0, 0.15), 0 0 0 1px rgba(255, 144, 0, 0.1);
+  }
+
+  /* Quality Badge Styles */
+  .quality-badge {
+    @apply absolute top-2 left-2 px-2 py-0.5 rounded text-xs font-bold z-10;
+    background: linear-gradient(135deg, #FF9000, #FF6000);
+    box-shadow: 0 2px 8px rgba(255, 144, 0, 0.4);
+  }
+
+  .quality-badge-4k {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+  }
+
+  .quality-badge-hd {
+    background: linear-gradient(135deg, #FF9000, #FF6000);
+    color: #000;
+  }
+
+  .quality-badge-sd {
+    @apply bg-gray-600 text-white;
+    background: linear-gradient(135deg, #666, #444);
+  }
+
+  /* Duration Badge */
+  .duration-badge {
+    @apply absolute bottom-2 right-2 px-2 py-0.5 rounded text-xs font-semibold;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Play Button Overlay */
+  .play-overlay {
+    @apply absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);
+  }
+
+  .video-card:hover .play-overlay {
+    @apply opacity-100;
+  }
+
+  .play-button {
+    @apply w-14 h-14 rounded-full flex items-center justify-center scale-75 transition-all duration-300;
+    background: linear-gradient(135deg, #FF9000, #FF6000);
+    box-shadow: 0 4px 20px rgba(255, 144, 0, 0.5);
+  }
+
+  .video-card:hover .play-button {
+    @apply scale-100;
+  }
+
+  /* Preview Progress Bar */
+  .preview-progress {
+    @apply absolute bottom-0 left-0 right-0 h-1 bg-[#2a2a2a];
+  }
+
+  .preview-progress-bar {
+    @apply h-full bg-[#FF9000] transition-all duration-200;
+  }
+
+  /* Video Info Section */
+  .video-info {
+    @apply p-3 space-y-2;
+  }
+
+  .video-title {
+    @apply text-sm font-medium text-white line-clamp-2 leading-snug transition-colors;
+  }
+
+  .video-card:hover .video-title {
+    @apply text-[#FF9000];
+  }
+
+  .video-stats {
+    @apply flex items-center gap-3 text-xs text-gray-400;
+  }
+
+  .video-stat {
+    @apply flex items-center gap-1;
+  }
+
+  /* Uploader Badge */
+  .uploader-badge {
+    @apply text-xs text-gray-500 truncate;
+  }
+
+  .uploader-badge:hover {
+    @apply text-[#FF9000];
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Filter chips */
+  .filter-chip {
+    @apply px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0;
+    @apply bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a];
+  }
+
+  .filter-chip:hover {
+    @apply bg-[#252525] border-[#3a3a3a];
+  }
+
+  .filter-chip.active {
+    @apply bg-[#FF9000] text-black border-[#FF9000];
+    box-shadow: 0 4px 15px rgba(255, 144, 0, 0.3);
+  }
+
+  /* Section Headers */
+  .section-header {
+    @apply flex items-center gap-3 mb-6;
+  }
+
+  .section-indicator {
+    @apply w-1 h-8 rounded-full bg-[#FF9000];
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-white;
   }
 }

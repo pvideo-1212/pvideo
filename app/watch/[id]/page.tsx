@@ -161,7 +161,7 @@ function WatchContent() {
   const embedUrl = videoData.embedUrl || `https://www.eporner.com/embed/${id}/`
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
+    <div className="min-h-screen bg-[#0d0d0d] overflow-x-hidden">
       <SiteHeader showSearch={false} />
 
       <main className="max-w-[1600px] mx-auto px-4 py-4 sm:py-6">
