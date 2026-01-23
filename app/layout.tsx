@@ -158,6 +158,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <meta name="6a97888e-site-verification" content="6535a62ed6135144c8b231bf87e7b548"></meta>
+        <meta name="apple-mobile-web-app-title" content="Pornhub 1" />
+
+
         <Script
           id="organization-schema"
           type="application/ld+json"
