@@ -208,7 +208,7 @@ export async function scrapeVideoList(page: number = 1): Promise<PaginatedRespon
   }
 }
 
-// Scrape video details with streams
+// Scrape video details with streams - OPTIMIZED for speed
 export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails | null> {
   const cacheKey = `video_${videoId}`
   const cached = getCached<VideoDetails>(cacheKey)
@@ -218,64 +218,87 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
 
   try {
     const url = buildUrl(config.paths.video, { id: videoId })
+    // Use networkidle instead of domcontentloaded for faster initial load, but don't wait for selector
     await browserPage.goto(url, { waitUntil: 'domcontentloaded', timeout: config.timeout.navigation })
-    await browserPage.waitForSelector('h1', { timeout: config.timeout.scrape })
+
+    // Small delay to let JS execute (much faster than waitForSelector)
+    await browserPage.waitForTimeout(500)
 
     const details = await browserPage.evaluate(() => {
       // Basic info
-      const title = document.querySelector('h1')?.textContent?.trim() || ''
+      const title = document.querySelector('h1')?.textContent?.trim() ||
+        document.querySelector('title')?.textContent?.split(' - ')[0]?.trim() || ''
       const views = document.querySelector('span.views')?.textContent?.trim() || ''
       const duration = document.querySelector('.vjs-duration-display')?.textContent?.trim() || ''
       const channel = document.querySelector('.channel-by a')?.textContent?.trim() || ''
-      const thumbnail = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
-      const description = document.querySelector('.description, meta[name="description"]')?.textContent?.trim() || ''
+      const thumbnail = document.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
+        (document.querySelector('video') as HTMLVideoElement)?.poster || ''
+      const description = document.querySelector('.description')?.textContent?.trim() ||
+        document.querySelector('meta[name="description"]')?.getAttribute('content') || ''
 
       // Categories
       const categories: string[] = []
       document.querySelectorAll('.searches a[href^="/s/"]').forEach((el) => {
         const text = el.textContent?.trim()
-        if (text) categories.push(text)
+        if (text && text.length > 1) categories.push(text)
       })
 
       // Tags
       const tags: string[] = []
       document.querySelectorAll('.tags-info a, .video-tags a').forEach((el) => {
         const text = el.textContent?.trim()
-        if (text) tags.push(text)
+        if (text && text.length > 1) tags.push(text)
       })
 
-      // Stream extraction
-      const streams: VideoStream[] = []
+      // Stream extraction - improved to catch all formats
+      const streams: { quality: string; url: string; type: 'mp4' | 'm3u8' }[] = []
+      const seenUrls = new Set<string>()
+
       document.querySelectorAll('script').forEach((script) => {
         const content = script.textContent || ''
 
-        // Method 1: stream_data object
+        // Method 1: stream_data object (most reliable)
         const streamMatch = content.match(/stream_data\s*=\s*(\{[\s\S]*?\});/)
         if (streamMatch) {
           try {
             const data = JSON.parse(streamMatch[1].replace(/'/g, '"'))
             Object.entries(data).forEach(([quality, urls]) => {
               if (Array.isArray(urls) && urls[0] && typeof urls[0] === 'string' && urls[0].startsWith('http')) {
-                streams.push({
-                  quality,
-                  url: urls[0],
-                  type: urls[0].includes('.m3u8') ? 'm3u8' : 'mp4',
-                })
+                if (!seenUrls.has(urls[0])) {
+                  seenUrls.add(urls[0])
+                  streams.push({
+                    quality: quality.toUpperCase() === '4K' ? '4K' : quality,
+                    url: urls[0],
+                    type: urls[0].includes('.m3u8') ? 'm3u8' : 'mp4',
+                  })
+                }
               }
             })
           } catch { }
         }
 
-        // Method 2: Direct URL patterns
+        // Method 2: Direct URL patterns in scripts
         const urlMatches = content.matchAll(/["']?(https?:\/\/[^"'\s]+\.(mp4|m3u8)[^"'\s]*)["']?/gi)
         for (const match of urlMatches) {
-          const url = match[1]
-          if (!streams.find(s => s.url === url)) {
-            const qualityMatch = url.match(/(\d{3,4})p/i)
+          const streamUrl = match[1]
+          if (!seenUrls.has(streamUrl) && !streamUrl.includes('preview') && !streamUrl.includes('thumb')) {
+            seenUrls.add(streamUrl)
+            const qualityMatch = streamUrl.match(/(\d{3,4})p/i) || streamUrl.match(/_(4k|2160|1080|720|480|360|240)/i)
+            let quality = 'auto'
+            if (qualityMatch) {
+              const q = qualityMatch[1].toLowerCase()
+              if (q === '4k' || q === '2160') quality = '4K'
+              else if (q === '1080') quality = '1080p'
+              else if (q === '720') quality = '720p'
+              else if (q === '480') quality = '480p'
+              else if (q === '360') quality = '360p'
+              else if (q === '240') quality = '240p'
+              else quality = `${q}p`
+            }
             streams.push({
-              quality: qualityMatch ? `${qualityMatch[1]}p` : 'auto',
-              url,
-              type: url.includes('.m3u8') ? 'm3u8' : 'mp4',
+              quality,
+              url: streamUrl,
+              type: streamUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
             })
           }
         }
@@ -286,36 +309,39 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
 
     if (!details.title) return null
 
+    // Filter and sort streams - ALLOW ALL VALID QUALITIES INCLUDING 4K
+    const filteredStreams = details.streams.filter(s => {
+      // Allow both mp4 and m3u8
+      const allowedQualities = ['4k', '2160p', '1080p', '720p', '480p', '360p', '240p', 'auto']
+      const quality = s.quality.toLowerCase()
+      return allowedQualities.some(q => quality === q || quality.includes(q.replace('p', '')))
+    }).sort((a, b) => {
+      // Sort by quality (highest first)
+      const qualityOrder: Record<string, number> = {
+        '4k': 7, '4K': 7, '2160p': 7,
+        '1080p': 6,
+        '720p': 5,
+        '480p': 4,
+        '360p': 3,
+        '240p': 2,
+        'auto': 1
+      }
+      return (qualityOrder[b.quality] || 0) - (qualityOrder[a.quality] || 0)
+    })
+
     const result: VideoDetails = {
       id: videoId,
       title: details.title.slice(0, 200),
       thumbnail: details.thumbnail,
       duration: details.duration,
       views: details.views,
-      quality: details.streams.some(s => s.quality.includes('1080') || s.quality.includes('4K')) ? '4K' : 'HD',
+      quality: filteredStreams.some(s => ['4k', '4K', '2160p', '1080p'].includes(s.quality)) ? '4K' : 'HD',
       channel: details.channel,
       url: `https://spankbang.party/${videoId}/video/`,
       description: details.description,
       categories: details.categories,
       tags: details.tags,
-      // Filter streams: only keep standard qualities (240p, 360p, 480p, 720p, 1080p, 4K) and mp4 only
-      streams: details.streams.filter(s => {
-        // Exclude m3u8 streams
-        if (s.type === 'm3u8') return false
-
-        // Only allow specific quality values
-        const allowedQualities = ['240p', '360p', '480p', '720p', '1080p', '4k', '4K']
-        const quality = s.quality.toLowerCase()
-
-        // Check if quality matches allowed values
-        return allowedQualities.some(q => quality === q.toLowerCase() || quality.includes(q.replace('p', '')))
-      }).sort((a, b) => {
-        // Sort by quality (highest first)
-        const qualityOrder: Record<string, number> = { '4k': 6, '4K': 6, '1080p': 5, '720p': 4, '480p': 3, '360p': 2, '240p': 1 }
-        const aOrder = qualityOrder[a.quality] || 0
-        const bOrder = qualityOrder[b.quality] || 0
-        return bOrder - aOrder
-      }),
+      streams: filteredStreams,
     }
 
     setCache(cacheKey, result)
