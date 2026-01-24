@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
-import { scrapeVideoList, scrapeModels, scrapeChannels } from '@/lib/scraper/scraper'
+// Use fast scraper (cheerio-based) - Playwright doesn't work on Vercel
+import { scrapeVideoListFast, scrapeModelsFast, scrapeChannelsFast } from '@/lib/scraper/scrape-fast'
 
-// Force dynamic rendering - Playwright can't run at build time on Vercel
+// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Cache for 1 hour
 
@@ -64,9 +65,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Fetch 5 pages (~100 items) of each category in parallel
     const [videos, models, channels] = await Promise.all([
-      fetchPages(scrapeVideoList, 5),
-      fetchPages(scrapeModels, 5),
-      fetchPages(scrapeChannels, 5)
+      fetchPages(scrapeVideoListFast, 5),
+      fetchPages(scrapeModelsFast, 5),
+      fetchPages(scrapeChannelsFast, 5)
     ])
 
     // Add Videos

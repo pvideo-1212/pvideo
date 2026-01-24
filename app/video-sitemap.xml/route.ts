@@ -1,6 +1,7 @@
-import { scrapeVideoList } from '@/lib/scraper/scraper'
+// Use fast scraper (cheerio-based) - Playwright doesn't work on Vercel
+import { scrapeVideoListFast } from '@/lib/scraper/scrape-fast'
 
-// Force dynamic rendering - Playwright can't run at build time on Vercel
+// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Cache for 1 hour
 
@@ -18,7 +19,7 @@ export async function GET() {
 
   // Fetch 5 pages of fresh videos
   const fetchPages = async (pages: number) => {
-    const promises = Array.from({ length: pages }, (_, i) => scrapeVideoList(i + 1))
+    const promises = Array.from({ length: pages }, (_, i) => scrapeVideoListFast(i + 1))
     const results = await Promise.all(promises)
     return results.flatMap(r => r?.items || [])
   }
