@@ -2,8 +2,8 @@
 // This is 5-10x faster than Playwright for simple page scraping
 
 import * as cheerio from 'cheerio'
-import { config, getRandomUserAgent } from './config'
-import type { VideoItem, PaginatedResponse, ModelItem, ChannelItem } from './types'
+import { config, getRandomUserAgent, buildUrl } from './config'
+import type { VideoItem, VideoDetails, VideoStream, PaginatedResponse, ModelItem, ChannelItem } from './types'
 
 // Simple in-memory cache
 const cache = new Map<string, { data: unknown; timestamp: number }>()
@@ -322,4 +322,117 @@ export async function scrapeChannelsFast(page: number = 1): Promise<PaginatedRes
 
   setCache(cacheKey, result)
   return result
+}
+
+// Fast video details scraping using cheerio
+export async function scrapeVideoDetailsFast(videoId: string): Promise<VideoDetails | null> {
+  const cacheKey = `fast_video_${videoId}`
+  const cached = getCached<VideoDetails>(cacheKey)
+  if (cached) return { ...cached }
+
+  try {
+    const url = buildUrl(config.paths.video, { id: videoId })
+    console.log('[FastScraper] Fetching video details from:', url)
+    const html = await fetchPage(url)
+    console.log('[FastScraper] Got HTML, length:', html.length)
+    const $ = cheerio.load(html)
+
+    // Basic info
+    const title = $('h1').first().text().trim() || $('title').text().split(' - ')[0].trim()
+    console.log('[FastScraper] Extracted title:', title || '(empty)')
+    if (!title) return null
+
+    const views = $('span.views, .view-count, [class*="views"]').first().text().trim() || ''
+    const duration = $('.vjs-duration-display, .duration, [class*="duration"]').first().text().trim() || ''
+    const channel = $('.channel-by a, .uploader a, a[href*="/channel/"]').first().text().trim() || ''
+    const thumbnail = $('meta[property="og:image"]').attr('content') ||
+      $('video').attr('poster') ||
+      $('img.poster, .video-poster img').first().attr('src') || ''
+    const description = $('meta[name="description"]').attr('content') ||
+      $('.description, .video-description').first().text().trim() || ''
+
+    // Categories
+    const categories: string[] = []
+    $('.searches a[href^="/s/"], .categories a, a[href*="/category/"]').each((_, el) => {
+      const text = $(el).text().trim()
+      if (text && text.length > 1 && text.length < 50) categories.push(text)
+    })
+
+    // Tags
+    const tags: string[] = []
+    $('.tags-info a, .video-tags a, a[href*="/tag/"]').each((_, el) => {
+      const text = $(el).text().trim()
+      if (text && text.length > 1 && text.length < 50) tags.push(text)
+    })
+
+    // Stream extraction from script tags
+    const streams: VideoStream[] = []
+    $('script').each((_, script) => {
+      const content = $(script).html() || ''
+
+      // Method 1: stream_data object
+      const streamMatch = content.match(/stream_data\s*=\s*(\{[\s\S]*?\});/)
+      if (streamMatch) {
+        try {
+          const data = JSON.parse(streamMatch[1].replace(/'/g, '"'))
+          Object.entries(data).forEach(([quality, urls]) => {
+            if (Array.isArray(urls) && urls[0] && typeof urls[0] === 'string' && urls[0].startsWith('http')) {
+              streams.push({
+                quality,
+                url: urls[0],
+                type: urls[0].includes('.m3u8') ? 'm3u8' : 'mp4',
+              })
+            }
+          })
+        } catch { }
+      }
+
+      // Method 2: Direct URL patterns
+      const urlMatches = content.matchAll(/["']?(https?:\/\/[^"'\s]+\.(mp4|m3u8)[^"'\s]*)["']?/gi)
+      for (const match of urlMatches) {
+        const streamUrl = match[1]
+        if (!streams.find(s => s.url === streamUrl)) {
+          const qualityMatch = streamUrl.match(/(\d{3,4})p/i)
+          streams.push({
+            quality: qualityMatch ? `${qualityMatch[1]}p` : 'auto',
+            url: streamUrl,
+            type: streamUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
+          })
+        }
+      }
+    })
+
+    // Filter and sort streams
+    const filteredStreams = streams.filter(s => {
+      if (s.type === 'm3u8') return false
+      const allowedQualities = ['240p', '360p', '480p', '720p', '1080p', '4k', '4K']
+      const quality = s.quality.toLowerCase()
+      return allowedQualities.some(q => quality === q.toLowerCase() || quality.includes(q.replace('p', '')))
+    }).sort((a, b) => {
+      const qualityOrder: Record<string, number> = { '4k': 6, '4K': 6, '1080p': 5, '720p': 4, '480p': 3, '360p': 2, '240p': 1 }
+      return (qualityOrder[b.quality] || 0) - (qualityOrder[a.quality] || 0)
+    })
+
+    const result: VideoDetails = {
+      id: videoId,
+      title: title.slice(0, 200),
+      thumbnail: thumbnail.startsWith('//') ? 'https:' + thumbnail : thumbnail,
+      duration,
+      views,
+      quality: filteredStreams.some(s => s.quality.includes('1080') || s.quality.toLowerCase().includes('4k')) ? '4K' : 'HD',
+      channel,
+      url: config.baseUrl + `/${videoId}/video/`,
+      description,
+      categories: [...new Set(categories)].slice(0, 20),
+      tags: [...new Set(tags)].slice(0, 30),
+      streams: filteredStreams,
+    }
+
+    setCache(cacheKey, result)
+    return result
+
+  } catch (error) {
+    console.error('[FastScraper] Error scraping video details:', error)
+    return null
+  }
 }

@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
+// Note: Playwright scraper works locally but NOT on Vercel (no browser)
 import { scrapeVideoDetails } from '@/lib/scraper/scraper'
 import VideoClient from './VideoClient'
 import { Loader2 } from 'lucide-react'
