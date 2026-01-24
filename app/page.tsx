@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-// Use cheerio-based scraper for Vercel compatibility
-import { scrapeVideoListFast, scrapeSearchFast } from '@/lib/scraper/scrape-fast'
+// Playwright scraper - works on Railway (Docker support)
+import { scrapeVideoList, scrapeSearch } from '@/lib/scraper/scraper'
 import HomeClient from './HomeClient'
 import { Loader2 } from 'lucide-react'
 
@@ -43,9 +43,9 @@ export default async function HomePage({ searchParams }: Props) {
   // Server-side fetching
   let data
   if (searchQuery) {
-    data = await scrapeSearchFast(searchQuery, currentPage)
+    data = await scrapeSearch(searchQuery, currentPage)
   } else {
-    data = await scrapeVideoListFast(currentPage)
+    data = await scrapeVideoList(currentPage)
   }
 
   return (

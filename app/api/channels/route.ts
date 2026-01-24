@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { scrapeChannelsFast } from '@/lib/scraper/scrape-fast'
+import { scrapeChannels } from '@/lib/scraper/scraper'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   console.log('[API /api/channels] Requested page:', page)
 
   try {
-    const result = await scrapeChannelsFast(page)
+    const result = await scrapeChannels(page)
     console.log('[API /api/channels] Got', result.items.length, 'channels for page', page)
 
     return NextResponse.json({

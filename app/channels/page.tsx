@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { scrapeChannelsFast } from '@/lib/scraper/scrape-fast'
+import { scrapeChannels } from '@/lib/scraper/scraper'
 import ChannelsClient from './ChannelsClient'
 import { Loader2 } from 'lucide-react'
 
@@ -30,7 +30,7 @@ export default async function ChannelsPage({ searchParams }: Props) {
   const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
 
   // Server-side fetching
-  const data = await scrapeChannelsFast(currentPage)
+  const data = await scrapeChannels(currentPage)
 
   return (
     <Suspense fallback={

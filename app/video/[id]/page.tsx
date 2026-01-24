@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
-// Use embed-based scraper with fallback for Vercel compatibility
-import { scrapeVideoWithFallback } from '@/lib/scraper/scrape-fast'
+// Playwright scraper - works on Railway (Docker support)
+import { scrapeVideoDetails } from '@/lib/scraper/scraper'
 import VideoClient from './VideoClient'
 import { Loader2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export async function generateMetadata(
   const { id } = await params
 
   // Scrape video details on server
-  const video = await scrapeVideoWithFallback(id)
+  const video = await scrapeVideoDetails(id)
 
   if (!video) {
     return {
@@ -70,7 +70,7 @@ export default async function VideoPage({ params }: Props) {
   const { id } = await params
 
   // Server-side fetching
-  const video = await scrapeVideoWithFallback(id)
+  const video = await scrapeVideoDetails(id)
 
   if (!video) {
     notFound()
