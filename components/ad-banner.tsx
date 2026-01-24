@@ -1,75 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-
-interface AdBannerProps {
-  zoneId: string
-  className?: string
-}
-
-// Declare global AdProvider type
-declare global {
-  interface Window {
-    AdProvider: Array<{ serve: Record<string, unknown> }>
-  }
-}
-
-// ExoClick/Magsrv Ad Banner Component
-// This component only renders on client to avoid hydration mismatch
-export function AdBanner({ zoneId, className = '' }: AdBannerProps) {
-  const [mounted, setMounted] = useState(false)
-  const servedRef = useRef(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!mounted || servedRef.current) return
-
-    // Wait for ad-provider script to be ready, then serve
-    const serveAd = () => {
-      if (typeof window !== 'undefined') {
-        window.AdProvider = window.AdProvider || []
-        window.AdProvider.push({ serve: {} })
-        servedRef.current = true
-      }
-    }
-
-    // Small delay to ensure the ins element is in DOM
-    const timer = setTimeout(serveAd, 300)
-
-    return () => clearTimeout(timer)
-  }, [mounted])
-
-  // Don't render on server to avoid hydration mismatch
-  if (!mounted) {
-    return (
-      <div className={`ad-container ${className}`} style={{ minHeight: '90px' }}>
-        {/* Placeholder during SSR */}
-      </div>
-    )
-  }
-
-  return (
-    <div className={`ad-container ${className}`}>
-      <ins
-        className="eas6a97888e2"
-        data-zoneid={zoneId}
-      />
-    </div>
-  )
-}
-
-// Alias for backwards compatibility
-export function NativeAdBanner({ zoneId = "5805148", className = '' }: { zoneId?: string, className?: string }) {
-  return <AdBanner zoneId={zoneId} className={className} />
-}
-
-// Banner with default zone ID
-export function DefaultAd({ className }: { className?: string }) {
-  return <AdBanner zoneId="5805148" className={className} />
-}
+import { useEffect, useState } from 'react'
 
 // MyBid.io Banner Component
 // Uses id attribute to mount banner - MyBid script looks for elements by id
@@ -92,6 +23,48 @@ export function MyBidBanner({ bannerId, className = '' }: { bannerId: string, cl
   return (
     <div className={`mybid-banner ${className}`}>
       <div id={bannerId} data-banner-id={bannerId} />
+    </div>
+  )
+}
+
+// In-Content Ad Banner - for placing between video rows
+export function InContentAd({ className = '' }: { className?: string }) {
+  return (
+    <div className={`my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4 ${className}`}>
+      <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
+    </div>
+  )
+}
+
+// Sidebar Ad Banner - for sidebars
+export function SidebarAd({ className = '' }: { className?: string }) {
+  return (
+    <div className={`rounded-lg overflow-hidden bg-[#252525] min-h-[90px] ${className}`}>
+      <MyBidBanner bannerId="2015214" className="w-full" />
+    </div>
+  )
+}
+
+// Footer Ad Banner - for above footer
+export function FooterAd({ className = '' }: { className?: string }) {
+  return (
+    <div className={`w-full py-4 px-4 bg-[#0d0d0d] border-t border-[#1f1f1f] ${className}`}>
+      <div className="max-w-[1600px] mx-auto">
+        <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
+      </div>
+    </div>
+  )
+}
+
+// Leaderboard Ad - for top of pages
+export function LeaderboardAd({ className = '' }: { className?: string }) {
+  return (
+    <div className={`w-full py-3 px-4 bg-[#0d0d0d] ${className}`}>
+      <div className="max-w-[1600px] mx-auto">
+        <div className="rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2">
+          <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
+        </div>
+      </div>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useCategories, useChannels, usePornstars, useVideos, useSearch, usePrefetch, prefetchCategory, prefetchChannel, prefetchModel, useSearchSuggestions } from '@/hooks/use-scraper'
 import SiteFooter from '@/components/site-footer'
 import { Play, Eye, ChevronRight, ChevronLeft, Loader2, Search, X, TrendingUp, Flame, Grid3X3, Film, Tv, User, Menu, Home as HomeIcon, Clock, Star, ArrowUpDown, Shield } from 'lucide-react'
-import { AdBanner, MyBidBanner } from '@/components/ad-banner'
+import { MyBidBanner, InContentAd } from '@/components/ad-banner'
 
 // Helper function to get quality badge info
 function getQualityInfo(video: any): { label: string; class: string } | null {
@@ -336,8 +336,8 @@ export default function Home() {
                           className="w-full px-4 py-3 text-left hover:bg-[#FF9000]/20 transition-colors flex items-center gap-3"
                         >
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${s.type === 'category' ? 'bg-blue-500/20 text-blue-400' :
-                              s.type === 'model' ? 'bg-pink-500/20 text-pink-400' :
-                                'bg-green-500/20 text-green-400'
+                            s.type === 'model' ? 'bg-pink-500/20 text-pink-400' :
+                              'bg-green-500/20 text-green-400'
                             }`}>
                             {s.type === 'category' ? 'Category' : s.type === 'model' ? 'Model' : 'Channel'}
                           </span>
@@ -555,7 +555,7 @@ export default function Home() {
               {displayVids.length > 8 && (
                 <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4 space-y-3">
                   <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
-                  <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
+                  <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
                 </div>
               )}
 
@@ -570,7 +570,7 @@ export default function Home() {
               {displayVids.length > 16 && (
                 <div className="my-4 sm:my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2 sm:p-4 space-y-3">
                   <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
-                  <AdBanner zoneId="5805148" className="w-full min-h-[90px]" />
+                  <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
                 </div>
               )}
 

@@ -8,6 +8,7 @@ import { useVideos, usePornstars } from '@/hooks/use-scraper'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { Loader2, User, Play, Eye, ChevronLeft, ChevronRight, Film, Star, ArrowLeft } from 'lucide-react'
+import { MyBidBanner } from '@/components/ad-banner'
 
 // Generate consistent color for avatar
 function getColor(name: string): string {
@@ -112,6 +113,11 @@ function PornstarContent() {
           </div>
         </div>
 
+        {/* Leaderboard Ad - After profile info */}
+        <div className="mb-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+          <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
+        </div>
+
         {/* Videos Grid */}
         {loading && videos.length === 0 ? (
           <div className="flex items-center justify-center py-20">
@@ -120,8 +126,20 @@ function PornstarContent() {
         ) : videos.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {videos.map(v => <VideoCard key={v.id} video={v} />)}
+              {videos.slice(0, 8).map(v => <VideoCard key={v.id} video={v} />)}
             </div>
+
+            {/* Mid-content Ad */}
+            {videos.length > 8 && (
+              <>
+                <div className="my-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+                  <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {videos.slice(8).map(v => <VideoCard key={v.id} video={v} />)}
+                </div>
+              </>
+            )}
 
             {/* Pagination */}
             <div className="flex items-center justify-center gap-2 mt-8">

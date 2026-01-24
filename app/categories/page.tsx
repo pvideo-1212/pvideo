@@ -6,6 +6,7 @@ import { useCategories, usePrefetch, prefetchCategory } from '@/hooks/use-scrape
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { Loader2, Grid3X3, Search, ChevronLeft, ChevronRight, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react'
+import { MyBidBanner } from '@/components/ad-banner'
 
 const ITEMS_PER_PAGE = 48
 
@@ -116,6 +117,11 @@ function CategoriesContent() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Leaderboard Ad - Top of page */}
+        <div className="mb-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+          <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
         </div>
 
         {loading ? (

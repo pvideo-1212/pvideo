@@ -7,6 +7,7 @@ import { usePornstars, usePrefetch, prefetchModel } from '@/hooks/use-scraper'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { Loader2, User, Search, ChevronLeft, ChevronRight, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react'
+import { MyBidBanner } from '@/components/ad-banner'
 
 const ITEMS_PER_PAGE = 48
 
@@ -125,6 +126,11 @@ function PornstarsContent() {
           </div>
         </div>
 
+        {/* Leaderboard Ad - Top of page */}
+        <div className="mb-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+          <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-[#FF9000]" />
@@ -154,6 +160,13 @@ function PornstarsContent() {
                 </Link>
               ))}
             </div>
+
+            {/* Mid-page Ad - After first batch of models */}
+            {paginatedItems.length > 24 && (
+              <div className="mt-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+                <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (

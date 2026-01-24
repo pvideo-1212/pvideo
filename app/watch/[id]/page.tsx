@@ -7,7 +7,7 @@ import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import { useVideoDetail, useRecommendedVideos } from '@/hooks/use-scraper'
 import { Loader2, Play, Eye, ThumbsUp, Share2, Film, Calendar, Tag, Home, Star, Clock, ChevronDown, User } from 'lucide-react'
-import { NativeAdBanner, MyBidBanner } from '@/components/ad-banner'
+import { MyBidBanner, SidebarAd, InContentAd } from '@/components/ad-banner'
 import { HLSPlayer } from '@/components/hls-player'
 
 // Track video for sitemap and SEO
@@ -366,7 +366,7 @@ function WatchContent() {
             )}
 
             {/* Enhanced Screenshot Gallery */}
-            {videoData.thumbs && videoData.thumbs.length > 1 && (
+            {/* {videoData.thumbs && videoData.thumbs.length > 1 && (
               <div className="bg-[#1b1b1b] rounded-xl border border-[#2c2c2c] p-4">
                 <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
                   <Film className="w-5 h-5 text-[#FF9000]" />
@@ -393,7 +393,7 @@ function WatchContent() {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Mobile Related Videos - 2 Column Grid */}
             <div className="lg:hidden">
@@ -405,8 +405,8 @@ function WatchContent() {
               ) : recommendedVideos.length > 0 ? (
                 <>
                   {/* 2-column grid on mobile - Enhanced with complete details */}
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    {recommendedVideos.slice(0, 8).map(v => (
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {recommendedVideos.slice(0, 4).map(v => (
                       <Link key={v.id} href={`/watch/${v.id}`} className="group">
                         <div className="relative aspect-video rounded-lg overflow-hidden bg-[#2c2c2c]">
                           {v.thumbnail && (
@@ -457,6 +457,66 @@ function WatchContent() {
                     ))}
                   </div>
 
+                  {/* Mobile In-Content Ad */}
+                  {recommendedVideos.length > 4 && (
+                    <div className="mb-4 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-2">
+                      <MyBidBanner bannerId="2015213" className="w-full min-h-[90px]" />
+                    </div>
+                  )}
+
+                  {/* More videos after ad */}
+                  {recommendedVideos.length > 4 && (
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      {recommendedVideos.slice(4, 8).map(v => (
+                        <Link key={v.id} href={`/watch/${v.id}`} className="group">
+                          <div className="relative aspect-video rounded-lg overflow-hidden bg-[#2c2c2c]">
+                            {v.thumbnail && (
+                              <img
+                                src={v.thumbnail}
+                                alt=""
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            )}
+                            <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[#FF9000] rounded text-[10px] text-black font-bold">
+                              HD
+                            </span>
+                            {v.duration && (
+                              <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 rounded text-[10px] text-white font-medium">
+                                {v.duration}
+                              </span>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-[#FF9000] flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all">
+                                <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                              </div>
+                            </div>
+                          </div>
+                          <h4 className="text-xs text-white font-medium line-clamp-2 mt-2 group-hover:text-[#FF9000] transition-colors">
+                            {v.title}
+                          </h4>
+                          <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[10px] text-gray-500">
+                            {v.views && (
+                              <span className="flex items-center gap-0.5">
+                                <Eye className="w-2.5 h-2.5" />{formatViews(v.views)}
+                              </span>
+                            )}
+                            {v.rating && parseFloat(v.rating) > 0 && (
+                              <span className="flex items-center gap-0.5 text-green-500">
+                                <Star className="w-2.5 h-2.5 fill-current" />{v.rating}%
+                              </span>
+                            )}
+                          </div>
+                          {v.uploader && (
+                            <div className="text-[10px] text-gray-600 mt-0.5 truncate">
+                              {v.uploader}
+                            </div>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Vertical list below horizontal scroll - Keep Watching */}
                   {recommendedVideos.length > 8 && (
                     <div className="space-y-3">
@@ -498,7 +558,7 @@ function WatchContent() {
               {/* Ad Banners - Top of Sidebar */}
               <div className="mb-4 rounded-lg overflow-hidden bg-[#252525] min-h-[90px] space-y-2">
                 <MyBidBanner bannerId="2015213" className="w-full" />
-                <NativeAdBanner zoneId="5805148" className="w-full" />
+                <MyBidBanner bannerId="2015214" className="w-full" />
               </div>
 
               <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
@@ -513,7 +573,7 @@ function WatchContent() {
                   {/* Ad Banners - Middle of sidebar */}
                   <div className="py-2 rounded-lg overflow-hidden bg-[#252525] min-h-[90px] space-y-2">
                     <MyBidBanner bannerId="2015214" className="w-full" />
-                    <NativeAdBanner zoneId="5805148" className="w-full" />
+                    <MyBidBanner bannerId="2015213" className="w-full" />
                   </div>
 
                   {recommendedVideos.slice(5).map(v => <RelatedVideoCard key={v.id} video={v} />)}

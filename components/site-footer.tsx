@@ -3,11 +3,20 @@
 import Link from 'next/link'
 import { Twitter, Instagram, Youtube } from 'lucide-react'
 import SeoFooter from './seo-footer'
+import { MyBidBanner } from './ad-banner'
 
 export default function SiteFooter() {
   return (
     <>
       <SeoFooter />
+
+      {/* Pre-Footer Ad Banner */}
+      <div className="w-full py-4 px-4 bg-[#0d0d0d] border-t border-[#1f1f1f]">
+        <div className="max-w-[1600px] mx-auto rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+          <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
+        </div>
+      </div>
+
       <footer className="bg-[#0a0a0a] border-t border-[#1f1f1f]">
         <div className="max-w-[1600px] mx-auto px-4 py-12">
           {/* Logo and Description */}
