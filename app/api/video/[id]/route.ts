@@ -1,7 +1,7 @@
 // GET /api/video/[id] - Video details with streams
 
 import { NextRequest, NextResponse } from 'next/server'
-import { scrapeVideoDetails } from '@/lib/scraper/scraper'
+import { scrapeVideoDetailsFast } from '@/lib/scraper/scrape-fast'
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +17,7 @@ export async function GET(
       )
     }
 
-    const video = await scrapeVideoDetails(id)
+    const video = await scrapeVideoDetailsFast(id)
 
     if (!video) {
       return NextResponse.json(

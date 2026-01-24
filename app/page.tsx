@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { scrapeVideoList, scrapeSearch } from '@/lib/scraper/scraper'
+// Use cheerio-based scraper for Vercel compatibility
+import { scrapeVideoListFast, scrapeSearchFast } from '@/lib/scraper/scrape-fast'
 import HomeClient from './HomeClient'
 import { Loader2 } from 'lucide-react'
 
@@ -42,9 +43,9 @@ export default async function HomePage({ searchParams }: Props) {
   // Server-side fetching
   let data
   if (searchQuery) {
-    data = await scrapeSearch(searchQuery, currentPage)
+    data = await scrapeSearchFast(searchQuery, currentPage)
   } else {
-    data = await scrapeVideoList(currentPage)
+    data = await scrapeVideoListFast(currentPage)
   }
 
   return (

@@ -1,7 +1,7 @@
 // GET /api/search - Search videos
 
 import { NextRequest, NextResponse } from 'next/server'
-import { scrapeSearch } from '@/lib/scraper/scraper'
+import { scrapeSearchFast } from '@/lib/scraper/scrape-fast'
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const result = await scrapeSearch(query.trim(), page)
+    const result = await scrapeSearchFast(query.trim(), page)
 
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { scrapeModels } from '@/lib/scraper/scraper'
+import { scrapeModelsFast } from '@/lib/scraper/scrape-fast'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   console.log('[API /api/models] Requested page:', page)
 
   try {
-    const result = await scrapeModels(page)
+    const result = await scrapeModelsFast(page)
     console.log('[API /api/models] Got', result.items.length, 'models for page', page)
 
     return NextResponse.json({

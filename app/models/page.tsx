@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { scrapeModels } from '@/lib/scraper/scraper'
+import { scrapeModelsFast } from '@/lib/scraper/scrape-fast'
 import ModelsClient from './ModelsClient'
 import { Loader2 } from 'lucide-react'
 
@@ -30,7 +30,7 @@ export default async function ModelsPage({ searchParams }: Props) {
   const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
 
   // Server-side fetching
-  const data = await scrapeModels(currentPage)
+  const data = await scrapeModelsFast(currentPage)
 
   return (
     <Suspense fallback={

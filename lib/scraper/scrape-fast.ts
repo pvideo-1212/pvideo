@@ -21,30 +21,63 @@ function setCache<T>(key: string, data: T): void {
   cache.set(key, { data, timestamp: Date.now() })
 }
 
-// Fast HTTP fetch with proper headers
-async function fetchPage(url: string): Promise<string> {
+// Enhanced HTTP fetch with browser-like headers to bypass bot detection
+async function fetchPage(url: string, retries = 3): Promise<string> {
   console.log('[FastScraper] Fetching:', url)
   const startTime = Date.now()
 
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': getRandomUserAgent(),
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.5',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1',
-      'Cache-Control': 'max-age=0',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  // More comprehensive browser-like headers
+  const headers: Record<string, string> = {
+    'User-Agent': getRandomUserAgent(),
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+    'Sec-Ch-Ua-Mobile': '?0',
+    'Sec-Ch-Ua-Platform': '"macOS"',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
+    'Referer': 'https://www.google.com/',
+    'DNT': '1',
   }
 
-  const html = await response.text()
-  console.log(`[FastScraper] Fetched in ${Date.now() - startTime}ms`)
-  return html
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers,
+        redirect: 'follow',
+      })
+
+      if (response.status === 403) {
+        console.log(`[FastScraper] Got 403, attempt ${attempt}/${retries}`)
+        if (attempt < retries) {
+          // Wait a bit before retry with different user agent
+          await new Promise(r => setTimeout(r, 1000 * attempt))
+          headers['User-Agent'] = getRandomUserAgent()
+          continue
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const html = await response.text()
+      console.log(`[FastScraper] Fetched in ${Date.now() - startTime}ms (attempt ${attempt})`)
+      return html
+    } catch (error) {
+      if (attempt === retries) throw error
+      console.log(`[FastScraper] Attempt ${attempt} failed, retrying...`)
+      await new Promise(r => setTimeout(r, 1000 * attempt))
+    }
+  }
+
+  throw new Error('All fetch attempts failed')
 }
 
 // Extract videos from HTML using Cheerio

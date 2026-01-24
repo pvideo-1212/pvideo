@@ -1,7 +1,7 @@
 // GET /api/videos - Paginated video list
 
 import { NextRequest, NextResponse } from 'next/server'
-import { scrapeVideoList } from '@/lib/scraper/scraper'
+import { scrapeVideoListFast } from '@/lib/scraper/scrape-fast'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const result = await scrapeVideoList(page)
+    const result = await scrapeVideoListFast(page)
     console.log('[API /api/videos] Got', result.items.length, 'items for page', page)
 
     return NextResponse.json({

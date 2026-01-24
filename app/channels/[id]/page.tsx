@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { scrapeSearch } from '@/lib/scraper/scraper'
+import { scrapeSearchFast } from '@/lib/scraper/scrape-fast'
 import ChannelClient from './ChannelClient'
 import { Loader2 } from 'lucide-react'
 
@@ -46,7 +46,7 @@ export default async function ChannelDetailPage({ params, searchParams }: Props)
   }
 
   // Server-side fetching using search
-  const data = await scrapeSearch(channelName, 1)
+  const data = await scrapeSearchFast(channelName, 1)
 
   return (
     <Suspense fallback={

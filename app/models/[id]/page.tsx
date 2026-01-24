@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { scrapeSearch } from '@/lib/scraper/scraper'
+import { scrapeSearchFast } from '@/lib/scraper/scrape-fast'
 import ModelClient from './ModelClient'
 import { Loader2 } from 'lucide-react'
 
@@ -47,7 +47,7 @@ export default async function ModelDetailPage({ params, searchParams }: Props) {
   }
 
   // Server-side fetching using search (since we don't have a direct scrapeModel function yet that parses the model page details separately, search is the fallback used in client version)
-  const data = await scrapeSearch(modelName, 1)
+  const data = await scrapeSearchFast(modelName, 1)
 
   return (
     <Suspense fallback={
