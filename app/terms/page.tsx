@@ -1,69 +1,105 @@
-import SiteHeader from '@/components/site-header'
-import SiteFooter from '@/components/site-footer'
-import { Scale } from 'lucide-react'
+'use client'
 
-export const metadata = { title: 'Terms of Service - Pornhub' }
+import { FileText, Scale, AlertCircle } from 'lucide-react'
+import Header from '@/components/Header'
+import { FooterAd } from '@/components/ad-banner'
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
-      <SiteHeader showSearch={false} />
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="flex items-center gap-3 mb-8">
-          <Scale className="w-8 h-8 text-[#FF9000]" />
-          <h1 className="text-3xl font-bold text-white">Terms of Service</h1>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
-        <div className="prose prose-invert max-w-none space-y-8 text-gray-300">
-          <p className="text-gray-400">Last updated: January 1, 2025</p>
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-6">
+              <Scale className="w-8 h-8 text-blue-400" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Terms of <span className="text-blue-400">Service</span>
+            </h1>
+            <p className="text-gray-400">
+              Please read these terms carefully before using our platform.
+            </p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">1. Acceptance of Terms</h2>
-            <p>By accessing and using this website, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use this service.</p>
-          </section>
+          {/* Content */}
+          <div className="glass rounded-3xl p-8 md:p-12 space-y-12">
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 text-sm">1</span>
+                Acceptance of Terms
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this websites particular services, you shall be subject to any posted guidelines or rules applicable to such services.
+                </p>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">2. Age Requirement</h2>
-            <p>You must be at least 18 years of age (or the age of majority in your jurisdiction) to access this website. By using this site, you represent and warrant that you meet this age requirement.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 text-sm">2</span>
+                Age Restriction
+              </h2>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-4">
+                <div className="flex gap-4">
+                  <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
+                  <p className="text-red-200">
+                    You must be at least 18 years of age (or the age of majority in your jurisdiction) to access this website. By accessing this website, you warrant that you are at least 18 years old.
+                  </p>
+                </div>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">3. Content</h2>
-            <p>All content on this website is for entertainment purposes only. We do not create or produce any content ourselves. All videos are provided by third-party sources.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 text-sm">3</span>
+                Content Policy
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  All content on this website is intended for adult audiences only. We have a zero-tolerance policy towards illegal content. All models appearing on this website are 18 years of age or older.
+                </p>
+                <p className="mt-4">
+                  We reserve the right to remove any content that violates our policies or applicable laws without prior notice.
+                </p>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">4. User Conduct</h2>
-            <p>You agree not to use the service for any unlawful purpose or in any way that could damage, disable, or impair the service. You must not attempt to gain unauthorized access to any part of the service.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 text-sm">4</span>
+                User Conduct
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>You agree not to use the website to:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>Upload or transmit any content that is unlawful, harmful, or violates any person's rights.</li>
+                  <li>Impersonate any person or entity.</li>
+                  <li>Interfere with or disrupt the service or servers.</li>
+                  <li>Collect or harvest personal data about other users.</li>
+                </ul>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">5. Intellectual Property</h2>
-            <p>All content, trademarks, and other intellectual property on this website are the property of their respective owners. You may not copy, modify, or distribute any content without permission.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">6. Disclaimer of Warranties</h2>
-            <p>This service is provided "as is" without any warranties, express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">7. Limitation of Liability</h2>
-            <p>We shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">8. Changes to Terms</h2>
-            <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">9. Contact</h2>
-            <p>If you have questions about these terms, please contact us through our Contact page.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 text-sm">5</span>
+                Intellectual Property
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  The content, organization, graphics, design, compilation, and other matters related to the Site are protected under applicable copyrights, trademarks and other proprietary rights. Detailed information can be found in our DMCA policy.
+                </p>
+              </div>
+            </section>
+          </div>
         </div>
       </main>
-      <SiteFooter />
+
+      <FooterAd />
     </div>
   )
 }

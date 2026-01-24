@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { scrapeChannels } from '@/lib/scraper/scraper'
-import ChannelsClient from './ChannelsClient'
+import { scrapeModels } from '@/lib/scraper/scraper'
+import ModelsClient from './ModelsClient'
 import { Loader2 } from 'lucide-react'
 
 // Force dynamic rendering
@@ -16,21 +16,21 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const page = typeof params.page === 'string' ? params.page : '1'
 
   return {
-    title: `Channels & Studios - TubeX - Page ${page}`,
-    description: `Browse thousands of channels and studios on TubeX. Page ${page}.`,
+    title: `Pornstars & Models - TubeX - Page ${page}`,
+    description: `Browse thousands of pornstars and models on TubeX. Page ${page}.`,
     openGraph: {
       type: 'website',
-      title: 'Channels & Studios - TubeX',
+      title: 'Pornstars & Models - TubeX',
     },
   }
 }
 
-export default async function ChannelsPage({ searchParams }: Props) {
+export default async function ModelsPage({ searchParams }: Props) {
   const params = await searchParams
   const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
 
   // Server-side fetching
-  const data = await scrapeChannels(currentPage)
+  const data = await scrapeModels(currentPage)
 
   return (
     <Suspense fallback={
@@ -38,8 +38,8 @@ export default async function ChannelsPage({ searchParams }: Props) {
         <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
       </div>
     }>
-      <ChannelsClient
-        initialChannels={data?.items || []}
+      <ModelsClient
+        initialModels={data?.items || []}
         initialHasMore={data?.hasMore || false}
       />
     </Suspense>

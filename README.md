@@ -1,118 +1,36 @@
-# EduStream - Streaming Website Clone
-
-A modern educational streaming platform built with Next.js, featuring video management, user authentication, and an admin dashboard.
-
-## Features
-
-- **Homepage with Video Grid** - Browse and discover educational videos with category filtering
-- **Video Detail Page** - Watch videos with metadata, descriptions, and related content
-- **Search and Filtering** - Advanced search with sorting by views, rating, and date
-- **User Authentication** - Sign up, login, and user profiles with session management
-- **Admin Dashboard** - Manage videos, users, and view analytics
-- **Database Layer** - Mock database service with CRUD operations for videos and users
-- **API Routes** - RESTful API endpoints for content management
-
-## Project Structure
-
-\`\`\`
-├── app/
-│   ├── page.tsx                 # Homepage
-│   ├── login/page.tsx           # Login page
-│   ├── signup/page.tsx          # Sign up page
-│   ├── profile/page.tsx         # User profile
-│   ├── video/[id]/page.tsx      # Video detail page
-│   ├── admin/page.tsx           # Admin dashboard
-│   ├── api/
-│   │   ├── videos/              # Video API routes
-│   │   ├── users/               # User API routes
-│   │   └── analytics/           # Analytics API routes
-│   └── layout.tsx               # Root layout with auth provider
-├── components/
-│   ├── header.tsx               # Navigation header
-│   ├── video-grid.tsx           # Video grid component
-│   ├── video-card.tsx           # Individual video card
-│   ├── video-player.tsx         # Video player
-│   ├── filter-panel.tsx         # Search and filter panel
-│   ├── auth-context.tsx         # Authentication context
-│   ├── login-form.tsx           # Login form
-│   ├── signup-form.tsx          # Sign up form
-│   ├── admin-sidebar.tsx        # Admin navigation
-│   └── dashboard-overview.tsx   # Admin dashboard stats
-├── hooks/
-│   ├── use-videos.ts            # Video data fetching hook
-│   └── use-analytics.ts         # Analytics data fetching hook
-├── lib/
-│   └── db.ts                    # Mock database service
-└── globals.css                  # Global styles with design tokens
-\`\`\`
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-### Installation
+First, run the development server:
 
-1. Clone the repository
-2. Install dependencies:
-   \`\`\`bash
-   npm install
-   \`\`\`
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-3. Run the development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Database
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The application uses a mock database service (`lib/db.ts`) that stores data in memory. For production, replace this with a real database like:
+## Learn More
 
-- Supabase (PostgreSQL)
-- MongoDB
-- Firebase
-- Neon
+To learn more about Next.js, take a look at the following resources:
 
-## API Endpoints
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### Videos
-- `GET /api/videos` - Get all videos with optional filtering
-- `GET /api/videos/[id]` - Get a specific video
-- `POST /api/videos` - Create a new video
-- `PUT /api/videos/[id]` - Update a video
-- `DELETE /api/videos/[id]` - Delete a video
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-### Users
-- `GET /api/users` - Get all users
-- `POST /api/users` - Create a new user
+## Deploy on Vercel
 
-### Analytics
-- `GET /api/analytics?type=stats` - Get platform statistics
-- `GET /api/analytics?type=top-videos` - Get top videos
-- `GET /api/analytics?type=top-instructors` - Get top instructors
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Authentication
-
-The app uses React Context for authentication with localStorage persistence. Users can:
-- Sign up with email and password
-- Log in to their account
-- View their profile
-- Log out
-
-Protected routes redirect unauthenticated users to the login page.
-
-## Styling
-
-The application uses Tailwind CSS v4 with custom design tokens defined in `globals.css`. The color scheme features:
-- Dark background (oklch(0.12 0 0))
-- Yellow/gold primary color (oklch(0.75 0.2 70))
-- Neutral grays for secondary elements
-
-## Future Enhancements
-
-- Real database integration
-- Video upload functionality
-- User watchlist and favorites
-- Comments and ratings system
-- Email notifications
-- Payment integration for premium content
-- Advanced analytics and reporting
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

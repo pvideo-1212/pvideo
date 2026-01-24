@@ -1,69 +1,93 @@
-import SiteHeader from '@/components/site-header'
-import SiteFooter from '@/components/site-footer'
-import { Shield } from 'lucide-react'
+'use client'
 
-export const metadata = { title: 'Privacy Policy - Pornhub' }
+import { Lock, Eye, Server, ShieldCheck } from 'lucide-react'
+import Header from '@/components/Header'
+import { FooterAd } from '@/components/ad-banner'
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
-      <SiteHeader showSearch={false} />
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="flex items-center gap-3 mb-8">
-          <Shield className="w-8 h-8 text-[#FF9000]" />
-          <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
-        <div className="prose prose-invert max-w-none space-y-8 text-gray-300">
-          <p className="text-gray-400">Last updated: January 1, 2025</p>
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-2xl mb-6">
+              <Lock className="w-8 h-8 text-emerald-400" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Privacy <span className="text-emerald-400">Policy</span>
+            </h1>
+            <p className="text-gray-400">
+              Your privacy is critically important to us.
+            </p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">1. Information We Collect</h2>
-            <p>We may collect information you provide directly, such as when you contact us. We also automatically collect certain information when you visit our site, including IP address, browser type, and device information.</p>
-          </section>
+          {/* Content */}
+          <div className="glass rounded-3xl p-8 md:p-12 space-y-12">
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <Eye className="w-6 h-6 text-emerald-400" />
+                Information Collection
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  We collect information to provide better services to all our users. This includes:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-4">
+                  <li>Information you give us (like account details).</li>
+                  <li>Information we get from your use of our services (like usage data).</li>
+                  <li>Device information (browser type, IP address - anonymized where possible).</li>
+                </ul>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">2. How We Use Information</h2>
-            <p>We use collected information to provide and improve our services, respond to inquiries, and ensure the security of our website. We do not sell your personal information to third parties.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <Server className="w-6 h-6 text-emerald-400" />
+                Data Usage
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  We use the information we collect from all our services to provide, maintain, protect and improve them, to develop new ones, and to protect our users.
+                </p>
+                <p className="mt-4">
+                  We verify age compliance without storing personally identifiable information unnecessarily.
+                </p>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">3. Cookies</h2>
-            <p>We use cookies and similar technologies to enhance your experience, analyze site usage, and assist in our marketing efforts. You can control cookie settings through your browser.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                Security
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  We work hard to protect our platform and our users from unauthorized access to or unauthorized alteration, disclosure or destruction of information we hold.
+                </p>
+                <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <p className="text-emerald-200 text-sm">
+                    We use SSL encryption for all data transmission.
+                  </p>
+                </div>
+              </div>
+            </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">4. Data Security</h2>
-            <p>We implement appropriate technical and organizational measures to protect your data against unauthorized access, alteration, disclosure, or destruction.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">5. Third-Party Services</h2>
-            <p>Our site may contain links to third-party websites. We are not responsible for the privacy practices of these external sites.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">6. Your Rights</h2>
-            <p>Depending on your location, you may have rights regarding your personal data, including the right to access, correct, delete, or restrict processing of your information.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">7. Children's Privacy</h2>
-            <p>Our service is not intended for anyone under 18 years of age. We do not knowingly collect personal information from minors.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">8. Changes to This Policy</h2>
-            <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">9. Contact Us</h2>
-            <p>If you have questions about this privacy policy, please contact us through our Contact page.</p>
-          </section>
+            <section>
+              <h2 className="text-2xl font-bold text-white mb-4">Cookies</h2>
+              <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed">
+                <p>
+                  We use cookies to improve your user experience and for analytics purposes. You can control cookies through your browser settings.
+                </p>
+              </div>
+            </section>
+          </div>
         </div>
       </main>
-      <SiteFooter />
+
+      <FooterAd />
     </div>
   )
 }

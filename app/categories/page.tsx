@@ -1,16 +1,37 @@
-"use client"
+'use client'
 
-import { Suspense, useState, useMemo } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useCategories, usePrefetch, prefetchCategory } from '@/hooks/use-scraper'
-import SiteHeader from '@/components/site-header'
-import SiteFooter from '@/components/site-footer'
-import { Loader2, Grid3X3, Search, ChevronLeft, ChevronRight, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react'
-import { MyBidBanner } from '@/components/ad-banner'
+import { Grid3X3, Search, ArrowRight, Tag } from 'lucide-react'
+import Header from '@/components/Header'
+import { LeaderboardAd, FooterAd } from '@/components/ad-banner'
 
-const ITEMS_PER_PAGE = 48
-
-type SortOption = 'name-asc' | 'name-desc' | 'count-desc' | 'count-asc'
+const categories = [
+  { name: 'Indian', slug: 'indian', count: 1250 },
+  { name: 'Japanese', slug: 'japanese', count: 3400 },
+  { name: 'Asian', slug: 'asian', count: 5600 },
+  { name: 'MILF', slug: 'milf', count: 8900 },
+  { name: 'Teen', slug: 'teen', count: 6700 },
+  { name: 'Big Tits', slug: 'big-tits', count: 4500 },
+  { name: 'Amateur', slug: 'amateur', count: 7200 },
+  { name: 'Anal', slug: 'anal', count: 3800 },
+  { name: 'Lesbian', slug: 'lesbian', count: 2900 },
+  { name: 'Blonde', slug: 'blonde', count: 4100 },
+  { name: 'Brunette', slug: 'brunette', count: 3300 },
+  { name: 'Hardcore', slug: 'hardcore', count: 5200 },
+  { name: 'Creampie', slug: 'creampie', count: 4600 },
+  { name: 'POV', slug: 'pov', count: 3100 },
+  { name: 'Blowjob', slug: 'blowjob', count: 5800 },
+  { name: 'Big Ass', slug: 'big-ass', count: 4200 },
+  { name: 'Threesome', slug: 'threesome', count: 2400 },
+  { name: 'Massage', slug: 'massage', count: 1800 },
+  { name: 'Interracial', slug: 'interracial', count: 3600 },
+  { name: 'Cumshot', slug: 'cumshot', count: 4900 },
+  { name: 'Hentai', slug: 'hentai', count: 1500 },
+  { name: 'VR', slug: 'vr', count: 800 },
+  { name: 'Bungul', slug: 'bungul', count: 120 },
+  { name: 'Desi', slug: 'desi', count: 2100 },
+]
 
 function getColor(name: string): string {
   const colors = [
@@ -30,175 +51,70 @@ function getColor(name: string): string {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function CategoriesContent() {
-  const { data: categories, loading } = useCategories()
-  const [search, setSearch] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [sortBy, setSortBy] = useState<SortOption>('name-asc')
-  usePrefetch()
+export default function CategoriesPage() {
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const sorted = useMemo(() => {
-    if (!categories) return []
-
-    let filtered = categories.filter(c =>
-      c.name.toLowerCase().includes(search.toLowerCase())
-    )
-
-    switch (sortBy) {
-      case 'name-asc':
-        filtered.sort((a, b) => a.name.localeCompare(b.name))
-        break
-      case 'name-desc':
-        filtered.sort((a, b) => b.name.localeCompare(a.name))
-        break
-      case 'count-desc':
-        filtered.sort((a, b) => (b.count || 0) - (a.count || 0))
-        break
-      case 'count-asc':
-        filtered.sort((a, b) => (a.count || 0) - (b.count || 0))
-        break
-    }
-
-    return filtered
-  }, [categories, search, sortBy])
-
-  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE)
-
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return sorted.slice(start, start + ITEMS_PER_PAGE)
-  }, [sorted, currentPage])
-
-  const handleSearch = (value: string) => {
-    setSearch(value)
-    setCurrentPage(1)
-  }
-
-  const handleSort = (option: SortOption) => {
-    setSortBy(option)
-    setCurrentPage(1)
-  }
+  const filteredCategories = categories.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
-      <SiteHeader showSearch={false} />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <LeaderboardAd />
 
-      <main className="max-w-[1400px] mx-auto px-4 py-6">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Grid3X3 className="w-6 h-6 text-[#FF9000]" />Categories
-              {categories && <span className="text-sm font-normal text-gray-500">({categories.length})</span>}
-            </h1>
-            <div className="relative max-w-xs w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input type="text" value={search} onChange={e => handleSearch(e.target.value)} placeholder="Search categories..."
-                className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder:text-gray-500 focus:outline-none focus:border-[#FF9000]" />
-            </div>
-          </div>
+      <main className="container mx-auto px-4 py-8">
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-400 flex items-center gap-1"><ArrowUpDown className="w-4 h-4" />Sort:</span>
-            {[
-              { value: 'name-asc', label: 'Name A-Z', icon: SortAsc },
-              { value: 'name-desc', label: 'Name Z-A', icon: SortDesc },
-              { value: 'count-desc', label: 'Most Videos', icon: SortDesc },
-              { value: 'count-asc', label: 'Least Videos', icon: SortAsc },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => handleSort(opt.value as SortOption)}
-                className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 transition-colors ${sortBy === opt.value
-                  ? 'bg-[#FF9000] text-black font-medium'
-                  : 'bg-[#1a1a1a] text-gray-300 hover:bg-[#2a2a2a]'
-                  }`}
-              >
-                <opt.icon className="w-3 h-3" />{opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* Leaderboard Ad - Top of page */}
-        <div className="mb-6 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] p-3">
-          <MyBidBanner bannerId="2015214" className="w-full min-h-[90px]" />
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#FF9000]" />
-          </div>
-        ) : paginatedItems.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {paginatedItems.map(category => (
-                <Link key={category.slug} href={`/?view=category&category=${category.slug}`} onMouseEnter={() => prefetchCategory(category.slug)}
-                  className="group bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] hover:border-[#FF9000]/50 transition-all overflow-hidden">
-                  <div className="aspect-video relative bg-[#2c2c2c]">
-                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getColor(category.name)}`}>
-                      <span className="text-2xl font-bold text-white/90 drop-shadow-lg">
-                        {category.name.split(' ').slice(0, 2).map(w => w.charAt(0).toUpperCase()).join('')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 text-center">
-                    <h3 className="font-medium text-white text-sm group-hover:text-[#FF9000] truncate">{category.name}</h3>
-                    {category.count && <p className="text-xs text-gray-500 mt-0.5">{category.count.toLocaleString()} videos</p>}
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2 flex-wrap">
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                  className="px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-white disabled:opacity-50 hover:border-[#FF9000] flex items-center gap-1">
-                  <ChevronLeft className="w-4 h-4" /> Prev
-                </button>
-                <div className="flex items-center gap-1">
-                  {currentPage > 3 && (
-                    <><button onClick={() => setCurrentPage(1)} className="w-10 h-10 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white hover:border-[#FF9000]">1</button>
-                      {currentPage > 4 && <span className="text-gray-500 px-2">...</span>}</>
-                  )}
-                  {Array.from({ length: 5 }, (_, i) => currentPage - 2 + i).filter(p => p >= 1 && p <= totalPages).map(page => (
-                    <button key={page} onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-lg border ${page === currentPage ? 'bg-[#FF9000] border-[#FF9000] text-black font-bold' : 'bg-[#1a1a1a] border-[#2a2a2a] text-white hover:border-[#FF9000]'}`}>
-                      {page}
-                    </button>
-                  ))}
-                  {currentPage < totalPages - 2 && (
-                    <>{currentPage < totalPages - 3 && <span className="text-gray-500 px-2">...</span>}
-                      <button onClick={() => setCurrentPage(totalPages)} className="w-10 h-10 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white hover:border-[#FF9000]">{totalPages}</button></>
-                  )}
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+          {filteredCategories.map((category) => (
+            <Link
+              key={category.slug}
+              href={`/search?q=${encodeURIComponent(category.name)}`}
+              className="group relative block overflow-hidden rounded-2xl bg-surface-card border border-white/5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-500/30"
+            >
+              {/* Category Color Block */}
+              <div className={`aspect-video w-full relative overflow-hidden bg-gradient-to-br ${getColor(category.name)}`}>
+                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-4xl font-bold text-white/90 drop-shadow-lg select-none">
+                    {category.name.charAt(0)}
+                  </span>
                 </div>
-                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-white disabled:opacity-50 hover:border-[#FF9000] flex items-center gap-1">
-                  Next <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
 
-            <div className="mt-4 text-center text-sm text-gray-500">
-              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, sorted.length)} of {sorted.length} categories
-              {search && ` (filtered from ${categories?.length || 0})`}
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-20 text-gray-500">
-            {search ? `No categories found for "${search}"` : 'No categories found'}
+                {/* Overlay effect */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
+                    {category.name}
+                  </h3>
+                  <ArrowRight className="w-4 h-4 text-gray-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <Tag className="w-3 h-3" />
+                  <span>{category.count.toLocaleString()} videos</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* No Results */}
+        {filteredCategories.length === 0 && (
+          <div className="py-20 text-center">
+            <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <p className="text-xl text-gray-400 mb-2">No categories found</p>
+            <p className="text-gray-500">Try searching for something else</p>
           </div>
         )}
       </main>
 
-      <SiteFooter />
+      <FooterAd />
     </div>
-  )
-}
-
-export default function CategoriesPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#FF9000]" /></div>}>
-      <CategoriesContent />
-    </Suspense>
   )
 }

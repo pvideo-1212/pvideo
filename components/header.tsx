@@ -1,224 +1,147 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import { Search, Moon, Sun, LogOut, User, Menu, X, Bell, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "./auth-context"
-import { useTheme } from "./theme-provider"
-import Link from "next/link"
+import { useState, FormEvent, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Search, Menu, X } from 'lucide-react'
 
 interface HeaderProps {
-  onSearch: (query: string) => void
+  onSearch?: (query: string) => void
+  initialQuery?: string
 }
 
-export default function Header({ onSearch }: HeaderProps) {
-  const [searchValue, setSearchValue] = useState("")
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, logout, isAdmin } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+export default function Header({ onSearch, initialQuery = '' }: HeaderProps) {
+  const router = useRouter()
+  const [query, setQuery] = useState(initialQuery)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  // Sync query with initialQuery prop when it changes
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    setQuery(initialQuery)
+  }, [initialQuery])
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchValue(value)
-    onSearch(value)
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    const trimmedQuery = query.trim()
+
+    if (onSearch) {
+      onSearch(trimmedQuery)
+    } else {
+      // Fallback: navigate directly if no onSearch provided
+      if (trimmedQuery) {
+        router.push(`/?q=${encodeURIComponent(trimmedQuery)}&page=1`)
+      } else {
+        router.push('/')
+      }
+    }
+
+    setIsMenuOpen(false)
   }
 
-  const navLinks = [
-    { label: "Videos", href: "/" },
-    { label: "Categories", href: "#" },
-    { label: "Models", href: "#" },
-    { label: "Live", href: "#" },
-  ]
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value)
+  }
 
   return (
-    <>
-      <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
-          ? 'glass-strong border-b border-border shadow-sm'
-          : 'bg-card/80 backdrop-blur-sm border-b border-transparent'
-          }`}
-      >
-        <div className="px-4 sm:px-6 py-3 max-w-7xl mx-auto">
-          <div className="flex items-center justify-between gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex items-center shrink-0 group">
-              <div className="flex items-center">
-                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Porn</span>
-                <span className="text-2xl sm:text-3xl font-extrabold bg-primary text-black px-2 py-0.5 rounded-md ml-0.5 tracking-tight">hub</span>
-              </div>
-            </Link>
-
-            {/* Search Bar - Desktop */}
-            <div className="flex-1 max-w-xl hidden md:block">
-              <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  placeholder="Search videos, categories, models..."
-                  value={searchValue}
-                  onChange={handleSearch}
-                  className="pl-11 pr-4 py-2.5 bg-muted/50 border-transparent text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-primary/50 rounded-xl transition-all"
-                />
-                {searchValue && (
-                  <button
-                    onClick={() => {
-                      setSearchValue("")
-                      onSearch("")
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
+    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-black/80 border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center">
+              <span className="text-white font-bold text-xl">T</span>
             </div>
+            <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              TubeX
+            </span>
+          </Link>
 
-            {/* Navigation Links - Desktop */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-lg transition-all"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-all"
-                >
-                  Admin
-                </Link>
-              )}
-            </nav>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-2">
-              {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="rounded-xl hover:bg-muted"
-                title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5 text-yellow-500" />
-                ) : (
-                  <Moon className="w-5 h-5" />
-                )}
-              </Button>
-
-              {/* Notifications */}
-              {user && (
-                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                </Button>
-              )}
-
-              {/* User Menu */}
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <Link href="/profile">
-                    <Button
-                      variant="ghost"
-                      className="gap-2 rounded-xl hover:bg-muted hidden sm:flex"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-medium text-sm">
-                        {user.name.charAt(0)}
-                      </div>
-                      <span className="font-medium">{user.name.split(' ')[0]}</span>
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={logout}
-                    className="rounded-xl hover:bg-destructive/10 hover:text-destructive"
-                    title="Logout"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="ghost" size="sm" className="rounded-xl hidden sm:flex">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm" className="rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
-              {/* Mobile Menu Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden rounded-xl"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Search */}
-          <div className="md:hidden mt-3">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+          {/* Search Bar - Desktop */}
+          <form onSubmit={handleSubmit} className="hidden md:flex flex-1 max-w-xl">
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={query}
+                onChange={handleInputChange}
                 placeholder="Search videos..."
-                value={searchValue}
-                onChange={handleSearch}
-                className="pl-11 bg-muted/50 border-transparent rounded-xl"
+                aria-label="Search videos"
+                className="w-full px-4 py-2.5 pl-11 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
               />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Search
+              </button>
             </div>
-          </div>
+          </form>
+
+          {/* Navigation - Desktop */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/" className="text-gray-300 hover:text-white transition-colors">
+              Home
+            </Link>
+            <Link href="/models" className="text-gray-300 hover:text-purple-400 transition-colors">
+              Models
+            </Link>
+            <Link href="/channels" className="text-gray-300 hover:text-cyan-400 transition-colors">
+              Channels
+            </Link>
+            <Link href="/categories" className="text-gray-300 hover:text-emerald-400 transition-colors">
+              Categories
+            </Link>
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 text-gray-300 hover:text-white"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
 
-        {/* Mobile Menu */}
-        <div className={`lg:hidden overflow-hidden transition-all duration-300 ${isMobileMenuOpen ? 'max-h-60 border-t border-border' : 'max-h-0'
-          }`}>
-          <nav className="px-4 py-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="block px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-lg transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.label}
+        {/* Mobile Search & Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden pt-4 space-y-4">
+            <form onSubmit={handleSubmit}>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={handleInputChange}
+                  placeholder="Search videos..."
+                  aria-label="Search videos"
+                  className="w-full px-4 py-3 pl-11 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-lg text-white text-sm font-medium"
+                >
+                  Go
+                </button>
+              </div>
+            </form>
+            <nav className="flex flex-col gap-2">
+              <Link href="/" className="py-2 text-gray-300 hover:text-white" onClick={() => setIsMenuOpen(false)}>
+                Home
               </Link>
-            ))}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="block px-4 py-3 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Admin Panel
+              <Link href="/models" className="py-2 text-gray-300 hover:text-purple-400" onClick={() => setIsMenuOpen(false)}>
+                Models
               </Link>
-            )}
-          </nav>
-        </div>
-      </header>
-    </>
+              <Link href="/channels" className="py-2 text-gray-300 hover:text-cyan-400" onClick={() => setIsMenuOpen(false)}>
+                Channels
+              </Link>
+              <Link href="/categories" className="py-2 text-gray-300 hover:text-emerald-400" onClick={() => setIsMenuOpen(false)}>
+                Categories
+              </Link>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header >
   )
 }

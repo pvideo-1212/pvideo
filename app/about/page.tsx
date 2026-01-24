@@ -1,52 +1,93 @@
-import SiteHeader from '@/components/site-header'
-import SiteFooter from '@/components/site-footer'
-import { Building2 } from 'lucide-react'
+'use client'
 
-export const metadata = { title: 'About Us - Pornhub' }
+import { Info, Shield, Heart, Flag, CheckCircle } from 'lucide-react'
+import Header from '@/components/Header'
+import { FooterAd } from '@/components/ad-banner'
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
-      <SiteHeader showSearch={false} />
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="flex items-center gap-3 mb-8">
-          <Building2 className="w-8 h-8 text-[#FF9000]" />
-          <h1 className="text-3xl font-bold text-white">About Pornhub</h1>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
-        <div className="prose prose-invert max-w-none space-y-8 text-gray-300">
-          <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6">
-            <p className="text-lg">Pornhub is the world's leading free adult entertainment platform, providing millions of videos to users worldwide.</p>
-          </section>
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-2xl mb-6">
+              <Info className="w-8 h-8 text-purple-400" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              About <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">TubeX</span>
+            </h1>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              The world's leading premium adult entertainment platform, providing high-quality streaming experience to millions of users worldwide.
+            </p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">Our Mission</h2>
-            <p>We are committed to providing a safe, secure, and enjoyable experience for adults seeking entertainment. Our platform prioritizes user privacy, content safety, and accessibility.</p>
-          </section>
+          {/* Content Sections */}
+          <div className="space-y-8">
+            {/* Mission */}
+            <div className="glass p-8 rounded-3xl relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+              <div className="relative z-10 flex gap-6">
+                <div className="hidden md:flex flex-shrink-0 w-12 h-12 bg-purple-500/20 rounded-xl items-center justify-center">
+                  <Flag className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Our Mission</h2>
+                  <p className="text-gray-400 leading-relaxed">
+                    We are committed to providing a safe, secure, and enjoyable experience for adults seeking entertainment.
+                    Our platform prioritisies user privacy, experience, and content quality above all else.
+                    We believe in creating a platform that is accessible, fast, and respectful to all parties involved.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">What We Offer</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Millions of free videos across numerous categories</li>
-              <li>High-quality streaming with adaptive quality</li>
-              <li>Advanced search and filtering capabilities</li>
-              <li>Mobile-optimized experience</li>
-              <li>Regular content updates</li>
-            </ul>
-          </section>
+            {/* What We Offer */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="glass p-8 rounded-3xl hover:border-pink-500/30 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                  <Heart className="w-6 h-6 text-pink-400" />
+                  What We Offer
+                </h3>
+                <ul className="space-y-4">
+                  {[
+                    'Millions of high-quality videos',
+                    'HD & 4K streaming support',
+                    'Advanced search & filtering',
+                    'Mobile-optimized experience',
+                    'Daily content updates'
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-gray-400">
+                      <CheckCircle className="w-5 h-5 text-pink-500/50 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">Our Commitment</h2>
-            <p>We are dedicated to maintaining a platform that respects the rights of content creators and performers. We actively work to prevent unauthorized content and respond promptly to any concerns.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4">Safety First</h2>
-            <p>User safety is our top priority. We implement robust age verification, content moderation, and security measures to ensure a safe environment for all users.</p>
-          </section>
+              <div className="glass p-8 rounded-3xl hover:border-blue-500/30 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                  <Shield className="w-6 h-6 text-blue-400" />
+                  Our Commitment
+                </h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  We are dedicated to maintaining a platform that respects the rights of content creators and performers.
+                  We actively work to prevent unauthorized content and respond promptly to any concerns.
+                </p>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-sm text-gray-500">
+                    Safety is our top priority. We implement robust age verification and security measures.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-      <SiteFooter />
+
+      <FooterAd />
     </div>
   )
 }
