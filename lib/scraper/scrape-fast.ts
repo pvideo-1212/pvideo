@@ -469,3 +469,154 @@ export async function scrapeVideoDetailsFast(videoId: string): Promise<VideoDeta
     return null
   }
 }
+
+// Scrape video streams from embed URL (more reliable, designed for cross-origin)
+export async function scrapeVideoFromEmbed(videoId: string): Promise<VideoDetails | null> {
+  const cacheKey = `embed_video_${videoId}`
+  const cached = getCached<VideoDetails>(cacheKey)
+  if (cached) return { ...cached }
+
+  try {
+    // SpankBang embed URL format
+    const embedUrl = `${config.baseUrl}/${videoId}/embed/`
+    console.log('[EmbedScraper] Fetching embed:', embedUrl)
+
+    const html = await fetchPage(embedUrl)
+    console.log('[EmbedScraper] Got embed HTML, length:', html.length)
+    const $ = cheerio.load(html)
+
+    // Extract title from embed page
+    const title = $('title').text().split(' - ')[0].trim() ||
+      $('meta[property="og:title"]').attr('content') ||
+      `Video ${videoId}`
+
+    // Extract thumbnail
+    const thumbnail = $('meta[property="og:image"]').attr('content') ||
+      $('video').attr('poster') || ''
+
+    // Stream extraction from script tags in embed page
+    const streams: VideoStream[] = []
+
+    $('script').each((_, script) => {
+      const content = $(script).html() || ''
+
+      // Method 1: stream_data object (common in SpankBang embeds)
+      const streamMatch = content.match(/stream_data\s*=\s*(\{[\s\S]*?\});/)
+      if (streamMatch) {
+        try {
+          // Parse the stream_data object
+          const jsonStr = streamMatch[1]
+            .replace(/'/g, '"')
+            .replace(/(\w+):/g, '"$1":')
+          const data = JSON.parse(jsonStr)
+
+          Object.entries(data).forEach(([quality, urls]) => {
+            if (Array.isArray(urls) && urls[0] && typeof urls[0] === 'string' && urls[0].startsWith('http')) {
+              streams.push({
+                quality,
+                url: urls[0],
+                type: urls[0].includes('.m3u8') ? 'm3u8' : 'mp4',
+              })
+            }
+          })
+        } catch (e) {
+          console.log('[EmbedScraper] Failed to parse stream_data:', e)
+        }
+      }
+
+      // Method 2: Look for direct stream URLs
+      const urlMatches = content.matchAll(/["']?(https?:\/\/[^"'\s]+\.(mp4|m3u8)[^"'\s]*)["']?/gi)
+      for (const match of urlMatches) {
+        const streamUrl = match[1]
+        if (!streams.find(s => s.url === streamUrl) && !streamUrl.includes('preview')) {
+          const qualityMatch = streamUrl.match(/(\d{3,4})p/i)
+          streams.push({
+            quality: qualityMatch ? `${qualityMatch[1]}p` : 'auto',
+            url: streamUrl,
+            type: streamUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
+          })
+        }
+      }
+
+      // Method 3: Look for source configurations
+      const sourceMatch = content.match(/sources?\s*[=:]\s*\[([\s\S]*?)\]/i)
+      if (sourceMatch) {
+        const srcMatches = sourceMatch[1].matchAll(/src['":\s]+['"]?(https?:\/\/[^'"]+)['"]?/gi)
+        for (const m of srcMatches) {
+          const streamUrl = m[1]
+          if (!streams.find(s => s.url === streamUrl)) {
+            const qualityMatch = streamUrl.match(/(\d{3,4})p/i)
+            streams.push({
+              quality: qualityMatch ? `${qualityMatch[1]}p` : 'auto',
+              url: streamUrl,
+              type: streamUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
+            })
+          }
+        }
+      }
+    })
+
+    // Also check video source elements
+    $('source').each((_, source) => {
+      const src = $(source).attr('src')
+      if (src && !streams.find(s => s.url === src)) {
+        const qualityMatch = src.match(/(\d{3,4})p/i)
+        streams.push({
+          quality: qualityMatch ? `${qualityMatch[1]}p` : 'auto',
+          url: src,
+          type: src.includes('.m3u8') ? 'm3u8' : 'mp4',
+        })
+      }
+    })
+
+    console.log('[EmbedScraper] Found', streams.length, 'streams')
+
+    // Filter and sort streams
+    const filteredStreams = streams.filter(s => {
+      if (s.type === 'm3u8') return false
+      const allowedQualities = ['240p', '360p', '480p', '720p', '1080p', '4k', '4K', 'auto']
+      const quality = s.quality.toLowerCase()
+      return allowedQualities.some(q => quality === q.toLowerCase() || quality.includes(q.replace('p', '')))
+    }).sort((a, b) => {
+      const qualityOrder: Record<string, number> = { '4k': 6, '4K': 6, '1080p': 5, '720p': 4, '480p': 3, '360p': 2, '240p': 1, 'auto': 0 }
+      return (qualityOrder[b.quality] || 0) - (qualityOrder[a.quality] || 0)
+    })
+
+    const result: VideoDetails = {
+      id: videoId,
+      title: title.slice(0, 200),
+      thumbnail: thumbnail.startsWith('//') ? 'https:' + thumbnail : thumbnail,
+      duration: '',
+      views: '',
+      quality: filteredStreams.some(s => s.quality.includes('1080') || s.quality.toLowerCase().includes('4k')) ? '4K' : 'HD',
+      channel: '',
+      url: config.baseUrl + `/${videoId}/video/`,
+      description: '',
+      categories: [],
+      tags: [],
+      streams: filteredStreams,
+    }
+
+    setCache(cacheKey, result)
+    return result
+
+  } catch (error) {
+    console.error('[EmbedScraper] Error:', error)
+    return null
+  }
+}
+
+// Combined scraper - tries embed first, falls back to main page
+export async function scrapeVideoWithFallback(videoId: string): Promise<VideoDetails | null> {
+  // Try embed first (more reliable for streams)
+  const embedResult = await scrapeVideoFromEmbed(videoId)
+  if (embedResult && embedResult.streams.length > 0) {
+    console.log('[Scraper] Got video from embed with', embedResult.streams.length, 'streams')
+    return embedResult
+  }
+
+  // Fall back to main page scraping
+  console.log('[Scraper] Embed failed, trying main page...')
+  const mainResult = await scrapeVideoDetailsFast(videoId)
+  return mainResult
+}

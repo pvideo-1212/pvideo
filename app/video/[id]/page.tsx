@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
-// Use cheerio-based scraper for Vercel compatibility
-import { scrapeVideoDetailsFast } from '@/lib/scraper/scrape-fast'
+// Use embed-based scraper with fallback for Vercel compatibility
+import { scrapeVideoWithFallback } from '@/lib/scraper/scrape-fast'
 import VideoClient from './VideoClient'
 import { Loader2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export async function generateMetadata(
   const { id } = await params
 
   // Scrape video details on server
-  const video = await scrapeVideoDetailsFast(id)
+  const video = await scrapeVideoWithFallback(id)
 
   if (!video) {
     return {
@@ -70,7 +70,7 @@ export default async function VideoPage({ params }: Props) {
   const { id } = await params
 
   // Server-side fetching
-  const video = await scrapeVideoDetailsFast(id)
+  const video = await scrapeVideoWithFallback(id)
 
   if (!video) {
     notFound()
