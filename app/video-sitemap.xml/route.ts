@@ -1,9 +1,8 @@
-// Playwright scraper - works on Railway (Docker support)
+// Playwright scraper - runs at build time on Railway (Docker support)
 import { scrapeVideoList } from '@/lib/scraper/scraper'
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-export const revalidate = 3600 // Cache for 1 hour
+// Static generation at build time - Playwright works on Railway
+export const revalidate = 3600 // Revalidate every hour
 
 export async function GET() {
   const baseUrl = 'https://pornhub1.fun' // Replace with actual domain

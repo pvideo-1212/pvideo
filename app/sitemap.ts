@@ -1,10 +1,9 @@
 import { MetadataRoute } from 'next'
-// Playwright scraper - works on Railway (Docker support)
+// Playwright scraper - runs at build time on Railway (Docker support)
 import { scrapeVideoList, scrapeModels, scrapeChannels } from '@/lib/scraper/scraper'
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-export const revalidate = 3600 // Cache for 1 hour
+// Static generation at build time - Playwright works on Railway
+export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://pornhub1.fun' // Replace with actual production domain
