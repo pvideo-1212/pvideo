@@ -121,13 +121,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
         />
-        {/* MyBid.io Ad Network */}
-        <Script
-          async
-          src="https://js.mbidadm.com/static/scripts.js"
-          data-admpid="417879"
-          strategy="afterInteractive"
-        />
+
+        <script async src="https://js.mbidadm.com/static/scripts.js" data-admpid="417879"></script>
         <Script id="mybid-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {

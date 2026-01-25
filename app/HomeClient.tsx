@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import VideoCard, { VideoCardSkeleton } from '@/components/VideoCard'
@@ -88,10 +88,18 @@ export default function HomeClient({ initialVideos, initialHasMore }: HomeClient
               <VideoCardSkeleton key={i} />
             ))
           ) : (
-            videos.map((video) => (
-              <article key={video.id}>
-                <VideoCard video={video} />
-              </article>
+            videos.map((video, index) => (
+              <Fragment key={video.id}>
+                <article>
+                  <VideoCard video={video} />
+                </article>
+                {/* Insert Ad after every 12 videos */}
+                {(index + 1) % 12 === 0 && (
+                  <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5">
+                    <LeaderboardAd />
+                  </div>
+                )}
+              </Fragment>
             ))
           )}
         </section>

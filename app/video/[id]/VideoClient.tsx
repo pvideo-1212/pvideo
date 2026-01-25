@@ -158,8 +158,8 @@ export default function VideoClient({ initialVideo }: VideoClientProps) {
               </div>
             </div>
 
-            {/* Mobile Ad (visible only on small screens) */}
-            <div className="block lg:hidden mb-8">
+            {/* Mobile & Desktop Ad - Always Visible */}
+            <div className="mb-8">
               <InContentAd />
             </div>
 

@@ -49,30 +49,31 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       images: ['/og-image.png'],
     },
   }
+}
+export default async function HomePage({ searchParams }: Props) {
+  const params = await searchParams
+  const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
+  const searchQuery = typeof params.q === 'string' ? params.q : ''
 
-  export default async function HomePage({ searchParams }: Props) {
-    const params = await searchParams
-    const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
-    const searchQuery = typeof params.q === 'string' ? params.q : ''
-
-    // Server-side fetching
-    let data
-    if (searchQuery) {
-      data = await scrapeSearch(searchQuery, currentPage)
-    } else {
-      data = await scrapeVideoList(currentPage)
-    }
-
-    return (
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-        </div>
-      }>
-        <HomeClient
-          initialVideos={data?.items || []}
-          initialHasMore={data?.hasMore || false}
-        />
-      </Suspense>
-    )
+  // Server-side fetching
+  let data
+  if (searchQuery) {
+    data = await scrapeSearch(searchQuery, currentPage)
+  } else {
+    data = await scrapeVideoList(currentPage)
   }
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+      </div>
+    }>
+      <HomeClient
+        initialVideos={data?.items || []}
+        initialHasMore={data?.hasMore || false}
+      />
+    </Suspense>
+  )
+}
+
