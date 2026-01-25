@@ -4,7 +4,7 @@ import { scrapeVideoListFast, scrapeModelsFast, scrapeChannelsFast } from '@/lib
 
 // Force dynamic - sitemap should be generated fresh each time
 export const dynamic = 'force-dynamic'
-export const revalidate = 0 // No cache
+export const revalidate = 3600 // Cache for 1 hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://pornhub1.fun'
@@ -75,11 +75,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // Fetch 3 pages of each (reduced from 5 for faster response)
+    // Fetch just 1 page of each to ensure fast response (<2s) and avoid GSC timeouts
     const [videosResult, modelsResult, channelsResult] = await Promise.all([
-      fetchWithTimeout(scrapeVideoListFast(1), 10000),
-      fetchWithTimeout(scrapeModelsFast(1), 10000),
-      fetchWithTimeout(scrapeChannelsFast(1), 10000),
+      fetchWithTimeout(scrapeVideoListFast(1), 5000),
+      fetchWithTimeout(scrapeModelsFast(1), 5000),
+      fetchWithTimeout(scrapeChannelsFast(1), 5000),
     ])
 
     console.log('[Sitemap] Videos:', videosResult?.items?.length || 0)

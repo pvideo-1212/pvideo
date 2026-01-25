@@ -3,7 +3,7 @@ import { scrapeVideoListFast } from '@/lib/scraper/scrape-fast'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const revalidate = 3600
 
 export async function GET() {
   const baseUrl = 'https://pornhub1.fun'
@@ -18,7 +18,7 @@ export async function GET() {
       return results.flatMap(r => r?.items || [])
     }
 
-    const videos = await fetchPages(3)
+    const videos = await fetchPages(1)
     console.log('[VideoSitemap] Found', videos.length, 'videos')
 
     // Generate XML sitemap
