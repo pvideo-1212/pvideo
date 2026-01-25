@@ -218,11 +218,8 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
 
   try {
     const url = buildUrl(config.paths.video, { id: videoId })
-    // Use networkidle instead of domcontentloaded for faster initial load, but don't wait for selector
+    // Use domcontentloaded, wait for specific conditions if needed but avoid arbitrary timeouts
     await browserPage.goto(url, { waitUntil: 'domcontentloaded', timeout: config.timeout.navigation })
-
-    // Small delay to let JS execute (much faster than waitForSelector)
-    await browserPage.waitForTimeout(500)
 
     const details = await browserPage.evaluate(() => {
       // Basic info
@@ -250,8 +247,8 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
         if (text && text.length > 1) tags.push(text)
       })
 
-      // Stream extraction - improved to catch all formats
-      const streams: { quality: string; url: string; type: 'mp4' | 'm3u8' }[] = []
+      // Stream extraction - ONLY MP4
+      const streams: { quality: string; url: string; type: 'mp4' }[] = []
       const seenUrls = new Set<string>()
 
       document.querySelectorAll('script').forEach((script) => {
@@ -263,14 +260,18 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
           try {
             const data = JSON.parse(streamMatch[1].replace(/'/g, '"'))
             Object.entries(data).forEach(([quality, urls]) => {
-              if (Array.isArray(urls) && urls[0] && typeof urls[0] === 'string' && urls[0].startsWith('http')) {
-                if (!seenUrls.has(urls[0])) {
-                  seenUrls.add(urls[0])
-                  streams.push({
-                    quality: quality.toUpperCase() === '4K' ? '4K' : quality,
-                    url: urls[0],
-                    type: urls[0].includes('.m3u8') ? 'm3u8' : 'mp4',
-                  })
+              // Check if array has items and is a string
+              if (Array.isArray(urls) && urls[0] && typeof urls[0] === 'string') {
+                const streamUrl = urls[0];
+                if (streamUrl.startsWith('http') && !streamUrl.includes('.m3u8')) {
+                  if (!seenUrls.has(streamUrl)) {
+                    seenUrls.add(streamUrl)
+                    streams.push({
+                      quality: quality.toUpperCase() === '4K' ? '4K' : quality,
+                      url: streamUrl,
+                      type: 'mp4',
+                    })
+                  }
                 }
               }
             })
@@ -278,10 +279,11 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
         }
 
         // Method 2: Direct URL patterns in scripts
-        const urlMatches = content.matchAll(/["']?(https?:\/\/[^"'\s]+\.(mp4|m3u8)[^"'\s]*)["']?/gi)
+        // Strict pattern for MP4s only
+        const urlMatches = content.matchAll(/["']?(https?:\/\/[^"'\s]+\.mp4[^"'\s]*)["']?/gi)
         for (const match of urlMatches) {
           const streamUrl = match[1]
-          if (!seenUrls.has(streamUrl) && !streamUrl.includes('preview') && !streamUrl.includes('thumb')) {
+          if (!seenUrls.has(streamUrl) && !streamUrl.includes('preview') && !streamUrl.includes('thumb') && !streamUrl.includes('.m3u8')) {
             seenUrls.add(streamUrl)
             const qualityMatch = streamUrl.match(/(\d{3,4})p/i) || streamUrl.match(/_(4k|2160|1080|720|480|360|240)/i)
             let quality = 'auto'
@@ -298,7 +300,7 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
             streams.push({
               quality,
               url: streamUrl,
-              type: streamUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
+              type: 'mp4',
             })
           }
         }
@@ -309,14 +311,8 @@ export async function scrapeVideoDetails(videoId: string): Promise<VideoDetails 
 
     if (!details.title) return null
 
-    // Filter and sort streams - ALLOW ALL VALID QUALITIES INCLUDING 4K
-    const filteredStreams = details.streams.filter(s => {
-      // Allow both mp4 and m3u8
-      const allowedQualities = ['4k', '2160p', '1080p', '720p', '480p', '360p', '240p', 'auto']
-      const quality = s.quality.toLowerCase()
-      return allowedQualities.some(q => quality === q || quality.includes(q.replace('p', '')))
-    }).sort((a, b) => {
-      // Sort by quality (highest first)
+    // Filter and sort streams - HIGHER QUALITY FIRST
+    const filteredStreams = details.streams.sort((a, b) => {
       const qualityOrder: Record<string, number> = {
         '4k': 7, '4K': 7, '2160p': 7,
         '1080p': 6,

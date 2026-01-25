@@ -13,15 +13,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://pornhub1.fun'),
   title: {
-    default: 'TubeX - Premium Free HD Video Streaming',
-    template: '%s | TubeX',
+    default: 'Free HD Porn Videos - Pornhub1 | Premium Adult Streaming',
+    template: '%s | Pornhub1 - Free HD Porn',
   },
-  description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming, and daily updates. Browse categories, models, and channels.',
+  description: 'Watch millions of free HD porn videos on Pornhub1. No registration required. Stream full-length amateur and professional sex clips with no ads. High quality, fast streaming.',
   keywords: [
-    'free videos', 'HD streaming', '4K videos', 'online videos', 'watch free',
-    'video platform', 'daily updates', 'streaming site', 'video streaming',
-    'adult entertainment', 'free streaming', 'HD quality', 'video categories',
-    'pornstars', 'models', 'channels', 'studios', 'amateur videos', 'professional videos'
+    'free hd porn', 'amateur couples', 'professional porn', 'full length sex movies',
+    'vr porn', '4k adult videos', 'mobile porn', 'hot sex clips',
+    'premium adult streaming', 'no registration porn', 'fast streaming porn',
+    'uncensored videos', 'exclusive amateur', 'reality porn', 'step fantasy',
+    'milf videos', 'lesbian sex', 'anal porn', 'blowjob videos', 'cumshot compilation'
   ],
   authors: [{ name: 'TubeX Team' }],
   creator: 'TubeX',
@@ -44,29 +45,29 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://pornhub1.fun',
-    siteName: 'TubeX',
-    title: 'TubeX - Premium Free HD Video Streaming',
-    description: 'Watch millions of free HD videos. No registration required. High quality, fast streaming.',
+    siteName: 'Pornhub1',
+    title: 'Free HD Porn Videos - Pornhub1 | Premium Adult Streaming',
+    description: 'Watch millions of free HD porn videos on Pornhub1. No registration required. Stream full-length amateur and professional sex clips.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'TubeX - Premium Video Streaming',
+        alt: 'Pornhub1 - Premium Free HD Porn',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TubeX - Premium Free HD Video Streaming',
-    description: 'Watch millions of free HD videos. No registration, fast streaming.',
+    title: 'Free HD Porn Videos - Pornhub1',
+    description: 'Watch millions of free HD porn videos. No registration, fast streaming.',
     images: ['/og-image.png'],
     creator: '@tubex',
   },
   verification: {
     google: 'your-google-verification-code', // Add your verification code
   },
-  category: 'entertainment',
+  category: 'adult entertainment',
 }
 
 export const viewport = {

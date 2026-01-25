@@ -27,53 +27,52 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
 
   return {
-    title: 'TubeX - Premium Free HD Video Streaming',
-    description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming, and daily updates.',
+    title: 'Free HD Porn Videos - Pornhub1 | Premium Adult Streaming',
+    description: 'Watch millions of free HD porn videos on Pornhub1. No registration required. Stream full-length amateur and professional sex clips with no ads.',
     keywords: [
-      'free videos', 'HD streaming', '4K videos', 'online videos', 'watch free',
-      'video platform', 'daily updates', 'streaming site', 'video streaming',
-      'adult entertainment', 'free streaming', 'HD quality', 'amateur videos',
-      'professional videos', 'video categories', 'pornstars', 'channels'
+      'free hd porn', 'amateur couples', 'professional porn', 'full length sex movies',
+      'vr porn', '4k adult videos', 'mobile porn', 'hot sex clips',
+      'premium adult streaming', 'no registration porn', 'fast streaming porn',
+      'uncensored videos', 'exclusive amateur', 'reality porn'
     ],
     openGraph: {
       type: 'website',
-      title: 'TubeX - Premium Free HD Video Streaming',
-      description: 'Watch millions of free HD videos. No registration required.',
+      title: 'Free HD Porn Videos - Pornhub1 | Premium Adult Streaming',
+      description: 'Watch millions of free HD porn videos. No registration required.',
       images: ['/og-image.png'],
-      siteName: 'TubeX',
+      siteName: 'Pornhub1',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'TubeX - Premium Free HD Video Streaming',
-      description: 'Watch millions of free HD videos. No registration required.',
+      title: 'Free HD Porn Videos - Pornhub1',
+      description: 'Watch millions of free HD porn videos. No registration, fast streaming.',
       images: ['/og-image.png'],
     },
   }
-}
 
-export default async function HomePage({ searchParams }: Props) {
-  const params = await searchParams
-  const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
-  const searchQuery = typeof params.q === 'string' ? params.q : ''
+  export default async function HomePage({ searchParams }: Props) {
+    const params = await searchParams
+    const currentPage = parseInt((typeof params.page === 'string' ? params.page : '1'), 10)
+    const searchQuery = typeof params.q === 'string' ? params.q : ''
 
-  // Server-side fetching
-  let data
-  if (searchQuery) {
-    data = await scrapeSearch(searchQuery, currentPage)
-  } else {
-    data = await scrapeVideoList(currentPage)
+    // Server-side fetching
+    let data
+    if (searchQuery) {
+      data = await scrapeSearch(searchQuery, currentPage)
+    } else {
+      data = await scrapeVideoList(currentPage)
+    }
+
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+        </div>
+      }>
+        <HomeClient
+          initialVideos={data?.items || []}
+          initialHasMore={data?.hasMore || false}
+        />
+      </Suspense>
+    )
   }
-
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-      </div>
-    }>
-      <HomeClient
-        initialVideos={data?.items || []}
-        initialHasMore={data?.hasMore || false}
-      />
-    </Suspense>
-  )
-}
