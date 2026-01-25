@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/sitemap/sitemap.xml',
+        permanent: true,
+      },
+    ]
+  },
 
   // Image optimization
   images: {
