@@ -16,11 +16,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const page = typeof params.page === 'string' ? params.page : '1'
 
   return {
-    title: `Channels & Studios - TubeX - Page ${page}`,
-    description: `Browse thousands of channels and studios on TubeX. Page ${page}.`,
+    title: `Channels & Studios - Page ${page}`,
+    description: `Browse thousands of channels and studios on TubeX. Find content from your favorite producers. Page ${page}.`,
+    keywords: [
+      'channels', 'studios', 'producers', 'content creators', 'video studios',
+      'production companies', 'browse channels', 'studio directory',
+      'professional content', 'channel profiles', 'studio videos'
+    ],
     openGraph: {
       type: 'website',
       title: 'Channels & Studios - TubeX',
+      description: 'Browse thousands of channels and studios.',
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Channels & Studios - TubeX',
+      description: 'Browse thousands of channels and studios on TubeX.',
+      images: ['/og-image.png'],
     },
   }
 }

@@ -21,16 +21,29 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (!modelName) {
     return {
       title: 'Model Not Found - TubeX',
+      description: 'The requested model profile could not be found.',
     }
   }
 
   return {
-    title: `${modelName} - Videos & Profile - TubeX`,
-    description: `Watch free HD videos featuring ${modelName} on TubeX.`,
+    title: `${modelName} - Videos & Profile`,
+    description: `Watch free HD videos featuring ${modelName} on TubeX. Browse all videos and profile information.`,
+    keywords: [
+      modelName, `${modelName} videos`, `${modelName} profile`,
+      'watch', 'HD videos', 'free streaming', 'pornstar',
+      'model profile', 'performer videos'
+    ],
     openGraph: {
       type: 'profile',
       title: `${modelName} - TubeX`,
       description: `Watch free HD videos featuring ${modelName} on TubeX.`,
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${modelName} - TubeX`,
+      description: `Watch free HD videos featuring ${modelName}.`,
+      images: ['/og-image.png'],
     },
   }
 }

@@ -1,14 +1,15 @@
 import { MetadataRoute } from 'next'
-// Playwright scraper - runs at build time on Railway (Docker support)
-import { scrapeVideoList, scrapeModels, scrapeChannels } from '@/lib/scraper/scraper'
+// Use fast cheerio-based scraper for sitemap (no browser needed, more reliable)
+import { scrapeVideoListFast, scrapeModelsFast, scrapeChannelsFast } from '@/lib/scraper/scrape-fast'
 
-// Static generation at build time - Playwright works on Railway
-export const revalidate = 3600 // Revalidate every hour
+// Force dynamic - sitemap should be generated fresh each time
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 // No cache
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://pornhub1.fun' // Replace with actual production domain
+  const baseUrl = 'https://pornhub1.fun'
 
-  // static routes
+  // Static routes (always included)
   const routes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -54,53 +55,84 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Try to fetch dynamic content
   try {
-    // Helper to fetch multiple pages
-    const fetchPages = async (fetcher: (page: number) => Promise<any>, pages: number) => {
-      const promises = Array.from({ length: pages }, (_, i) => fetcher(i + 1))
-      const results = await Promise.all(promises)
-      return results.flatMap(r => r?.items || [])
+    console.log('[Sitemap] Fetching dynamic content...')
+
+    // Fetch pages with timeout protection
+    const fetchWithTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> => {
+      try {
+        const result = await Promise.race([
+          promise,
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+          )
+        ])
+        return result
+      } catch (e) {
+        console.error('[Sitemap] Fetch timeout or error:', e)
+        return null
+      }
     }
 
-    // Fetch 5 pages (~100 items) of each category in parallel
-    const [videos, models, channels] = await Promise.all([
-      fetchPages(scrapeVideoList, 5),
-      fetchPages(scrapeModels, 5),
-      fetchPages(scrapeChannels, 5)
+    // Fetch 3 pages of each (reduced from 5 for faster response)
+    const [videosResult, modelsResult, channelsResult] = await Promise.all([
+      fetchWithTimeout(scrapeVideoListFast(1), 10000),
+      fetchWithTimeout(scrapeModelsFast(1), 10000),
+      fetchWithTimeout(scrapeChannelsFast(1), 10000),
     ])
 
+    console.log('[Sitemap] Videos:', videosResult?.items?.length || 0)
+    console.log('[Sitemap] Models:', modelsResult?.items?.length || 0)
+    console.log('[Sitemap] Channels:', channelsResult?.items?.length || 0)
+
     // Add Videos
-    videos.forEach((video: any) => {
-      routes.push({
-        url: `${baseUrl}/video/${video.id}`,
-        lastModified: new Date(),
-        changeFrequency: 'hourly',
-        priority: 0.9,
+    if (videosResult?.items) {
+      videosResult.items.forEach((video: any) => {
+        if (video.id) {
+          routes.push({
+            url: `${baseUrl}/video/${video.id}`,
+            lastModified: new Date(),
+            changeFrequency: 'hourly',
+            priority: 0.9,
+          })
+        }
       })
-    })
+    }
 
     // Add Models
-    models.forEach((model: any) => {
-      routes.push({
-        url: `${baseUrl}/models/${model.id}?slug=${model.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'hourly',
-        priority: 0.9,
+    if (modelsResult?.items) {
+      modelsResult.items.forEach((model: any) => {
+        if (model.id) {
+          routes.push({
+            url: `${baseUrl}/models/${model.id}${model.slug ? `?slug=${model.slug}` : ''}`,
+            lastModified: new Date(),
+            changeFrequency: 'hourly',
+            priority: 0.9,
+          })
+        }
       })
-    })
+    }
 
     // Add Channels
-    channels.forEach((channel: any) => {
-      routes.push({
-        url: `${baseUrl}/channels/${channel.id}?slug=${channel.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'hourly',
-        priority: 0.9,
+    if (channelsResult?.items) {
+      channelsResult.items.forEach((channel: any) => {
+        if (channel.id) {
+          routes.push({
+            url: `${baseUrl}/channels/${channel.id}${channel.slug ? `?slug=${channel.slug}` : ''}`,
+            lastModified: new Date(),
+            changeFrequency: 'hourly',
+            priority: 0.9,
+          })
+        }
       })
-    })
+    }
+
+    console.log('[Sitemap] Total URLs:', routes.length)
 
   } catch (error) {
-    console.error('Sitemap generation error:', error)
+    console.error('[Sitemap] Generation error:', error)
+    // Still return static routes even if dynamic fails
   }
 
   return routes

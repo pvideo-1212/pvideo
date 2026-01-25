@@ -11,18 +11,62 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pornhub1.fun'), // Base URL for relative links
+  metadataBase: new URL('https://pornhub1.fun'),
   title: {
     default: 'TubeX - Premium Free HD Video Streaming',
-    template: '%s - TubeX',
+    template: '%s | TubeX',
   },
-  description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming, and daily updates.',
-  keywords: ['videos', 'streaming', 'HD', '4K', 'free', 'adult', 'movies', 'clips'],
-  authors: [{ name: 'TubeX' }],
-  robots: 'index, follow',
+  description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming, and daily updates. Browse categories, models, and channels.',
+  keywords: [
+    'free videos', 'HD streaming', '4K videos', 'online videos', 'watch free',
+    'video platform', 'daily updates', 'streaming site', 'video streaming',
+    'adult entertainment', 'free streaming', 'HD quality', 'video categories',
+    'pornstars', 'models', 'channels', 'studios', 'amateur videos', 'professional videos'
+  ],
+  authors: [{ name: 'TubeX Team' }],
+  creator: 'TubeX',
+  publisher: 'TubeX',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   alternates: {
-    canonical: './', // Auto-generates canonical URL for every page
+    canonical: './',
   },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://pornhub1.fun',
+    siteName: 'TubeX',
+    title: 'TubeX - Premium Free HD Video Streaming',
+    description: 'Watch millions of free HD videos. No registration required. High quality, fast streaming.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'TubeX - Premium Video Streaming',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TubeX - Premium Free HD Video Streaming',
+    description: 'Watch millions of free HD videos. No registration, fast streaming.',
+    images: ['/og-image.png'],
+    creator: '@tubex',
+  },
+  verification: {
+    google: 'your-google-verification-code', // Add your verification code
+  },
+  category: 'entertainment',
 }
 
 export const viewport = {
@@ -43,6 +87,7 @@ export default function RootLayout({
     '@type': 'WebSite',
     name: 'TubeX',
     url: 'https://pornhub1.fun',
+    description: 'Premium free HD video streaming platform',
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://pornhub1.fun/?q={search_term_string}',
@@ -50,12 +95,30 @@ export default function RootLayout({
     }
   }
 
+  // Organization Schema for Brand Recognition
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'TubeX',
+    url: 'https://pornhub1.fun',
+    logo: 'https://pornhub1.fun/icon1.png',
+    sameAs: [],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      availableLanguage: ['English']
+    }
+  }
+
+  // Combined schemas
+  const schemas = [websiteSchema, organizationSchema]
+
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
         />
         {/* MyBid.io Ad Network */}
         <Script

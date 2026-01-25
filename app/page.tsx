@@ -19,18 +19,34 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   if (query) {
     return {
-      title: `${query} - TubeX Search`,
+      title: `${query} - Search Results`,
       description: `Watch ${query} videos on TubeX. Free HD streaming. Page ${page}.`,
-      robots: 'noindex, follow', // Typically search results shouldn't be indexed to avoid spam
+      keywords: [query, 'search', 'videos', 'HD', 'free streaming', 'watch online'],
+      robots: 'noindex, follow',
     }
   }
 
   return {
     title: 'TubeX - Premium Free HD Video Streaming',
-    description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming.',
+    description: 'Watch millions of free HD videos on TubeX. No registration required. High quality, fast streaming, and daily updates.',
+    keywords: [
+      'free videos', 'HD streaming', '4K videos', 'online videos', 'watch free',
+      'video platform', 'daily updates', 'streaming site', 'video streaming',
+      'adult entertainment', 'free streaming', 'HD quality', 'amateur videos',
+      'professional videos', 'video categories', 'pornstars', 'channels'
+    ],
     openGraph: {
       type: 'website',
       title: 'TubeX - Premium Free HD Video Streaming',
+      description: 'Watch millions of free HD videos. No registration required.',
+      images: ['/og-image.png'],
+      siteName: 'TubeX',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'TubeX - Premium Free HD Video Streaming',
+      description: 'Watch millions of free HD videos. No registration required.',
+      images: ['/og-image.png'],
     },
   }
 }

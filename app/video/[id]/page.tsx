@@ -27,27 +27,44 @@ export async function generateMetadata(
   if (!video) {
     return {
       title: 'Video Not Found - TubeX',
+      description: 'The requested video could not be found.',
     }
   }
 
   const previousImages = (await parent).openGraph?.images || []
 
+  // Generate keywords from video title (extract meaningful words)
+  const titleWords = video.title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(' ')
+    .filter(word => word.length > 3)
+    .slice(0, 8)
+
+  const keywords = [
+    ...titleWords,
+    'watch', 'HD video', 'free streaming', 'online',
+    ...(video.categories || []).slice(0, 5),
+  ]
+
   return {
-    title: `${video.title} - TubeX`,
-    description: video.description || `Watch ${video.title} on TubeX. Free HD streaming.`,
+    title: `${video.title}`,
+    description: video.description || `Watch ${video.title} on TubeX. Free HD streaming with no registration required.`,
+    keywords: keywords,
     openGraph: {
       title: video.title,
-      description: video.description,
+      description: video.description || `Watch ${video.title} on TubeX`,
       images: [
         video.thumbnail,
         ...previousImages
       ],
       type: 'video.other',
+      siteName: 'TubeX',
     },
     twitter: {
       card: 'summary_large_image',
       title: video.title,
-      description: video.description,
+      description: video.description || `Watch ${video.title} on TubeX`,
       images: [video.thumbnail],
     },
   }

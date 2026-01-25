@@ -16,11 +16,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const page = typeof params.page === 'string' ? params.page : '1'
 
   return {
-    title: `Pornstars & Models - TubeX - Page ${page}`,
-    description: `Browse thousands of pornstars and models on TubeX. Page ${page}.`,
+    title: `Pornstars & Models - Page ${page}`,
+    description: `Browse thousands of pornstars and models on TubeX. Find your favorite performers and watch their videos. Page ${page}.`,
+    keywords: [
+      'pornstars', 'models', 'performers', 'adult stars', 'profiles',
+      'video performers', 'browse models', 'famous pornstars', 'amateur models',
+      'professional performers', 'model profiles', 'star directory'
+    ],
     openGraph: {
       type: 'website',
       title: 'Pornstars & Models - TubeX',
+      description: 'Browse thousands of pornstars and models.',
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Pornstars & Models - TubeX',
+      description: 'Browse thousands of pornstars and models on TubeX.',
+      images: ['/og-image.png'],
     },
   }
 }

@@ -21,16 +21,29 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (!channelName) {
     return {
       title: 'Channel Not Found - TubeX',
+      description: 'The requested channel could not be found.',
     }
   }
 
   return {
-    title: `${channelName} - Videos & Profile - TubeX`,
-    description: `Watch free HD videos from ${channelName} on TubeX.`,
+    title: `${channelName} - Videos & Profile`,
+    description: `Watch free HD videos from ${channelName} on TubeX. Browse all videos from this studio.`,
+    keywords: [
+      channelName, `${channelName} videos`, `${channelName} channel`,
+      'watch', 'HD videos', 'free streaming', 'studio',
+      'channel videos', 'producer content'
+    ],
     openGraph: {
       type: 'profile',
       title: `${channelName} - TubeX`,
       description: `Watch free HD videos from ${channelName} on TubeX.`,
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${channelName} - TubeX`,
+      description: `Watch free HD videos from ${channelName}.`,
+      images: ['/og-image.png'],
     },
   }
 }
