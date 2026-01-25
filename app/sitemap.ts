@@ -5,6 +5,8 @@ import { scrapeVideoList, scrapeModels, scrapeChannels } from '@/lib/scraper/scr
 // Force dynamic - sitemap should be generated fresh each time
 export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Cache for 1 hour
+// Use Node.js runtime (not edge) for scraper compatibility
+export const runtime = 'nodejs'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://pornhub1.fun'
@@ -57,29 +59,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Try to fetch dynamic content
   try {
-    console.log('[Sitemap] Fetching dynamic content...')
+    console.log('[Sitemap] Fetching dynamic content with Playwright...')
 
     // Fetch pages with timeout protection
+    // Google Search Console has strict timeout limits (usually 5-10 seconds)
+    // We need to respond quickly, so use shorter timeouts per request
+    // The scraper has built-in caching, so warm cache will be fast
     const fetchWithTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> => {
       try {
-        const result = await Promise.race([
+        return await Promise.race([
           promise,
           new Promise<null>((_, reject) =>
             setTimeout(() => reject(new Error('Timeout')), timeoutMs)
           )
         ])
-        return result
       } catch (e) {
         console.error('[Sitemap] Fetch timeout or error:', e)
         return null
       }
     }
 
-    // Fetch just 1 page of each to ensure fast response (<2s) and avoid GSC timeouts
+    // Fetch just 1 page of each with aggressive timeout protection
+    // Use shorter timeouts (2.5s each) to ensure total time < 8s for Google Search Console
     const [videosResult, modelsResult, channelsResult] = await Promise.all([
-      fetchWithTimeout(scrapeVideoList(1), 5000),
-      fetchWithTimeout(scrapeModels(1), 5000),
-      fetchWithTimeout(scrapeChannels(1), 5000),
+      fetchWithTimeout(scrapeVideoList(1), 2500),
+      fetchWithTimeout(scrapeModels(1), 2500),
+      fetchWithTimeout(scrapeChannels(1), 2500),
     ])
 
     console.log('[Sitemap] Videos:', videosResult?.items?.length || 0)
