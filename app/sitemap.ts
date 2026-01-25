@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
-// Use fast cheerio-based scraper for sitemap (no browser needed, more reliable)
-import { scrapeVideoListFast, scrapeModelsFast, scrapeChannelsFast } from '@/lib/scraper/scrape-fast'
+// Use normal Playwright scraper to bypass Cloudflare
+import { scrapeVideoList, scrapeModels, scrapeChannels } from '@/lib/scraper/scraper'
 
 // Force dynamic - sitemap should be generated fresh each time
 export const dynamic = 'force-dynamic'
@@ -77,9 +77,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Fetch just 1 page of each to ensure fast response (<2s) and avoid GSC timeouts
     const [videosResult, modelsResult, channelsResult] = await Promise.all([
-      fetchWithTimeout(scrapeVideoListFast(1), 5000),
-      fetchWithTimeout(scrapeModelsFast(1), 5000),
-      fetchWithTimeout(scrapeChannelsFast(1), 5000),
+      fetchWithTimeout(scrapeVideoList(1), 5000),
+      fetchWithTimeout(scrapeModels(1), 5000),
+      fetchWithTimeout(scrapeChannels(1), 5000),
     ])
 
     console.log('[Sitemap] Videos:', videosResult?.items?.length || 0)

@@ -1,5 +1,5 @@
 // Use fast cheerio-based scraper (no browser needed, more reliable)
-import { scrapeVideoListFast } from '@/lib/scraper/scrape-fast'
+import { scrapeVideoList } from '@/lib/scraper/scraper'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,7 @@ export async function GET() {
 
     // Fetch just 3 pages for faster response
     const fetchPages = async (pages: number) => {
-      const promises = Array.from({ length: pages }, (_, i) => scrapeVideoListFast(i + 1))
+      const promises = Array.from({ length: pages }, (_, i) => scrapeVideoList(i + 1))
       const results = await Promise.all(promises)
       return results.flatMap(r => r?.items || [])
     }
