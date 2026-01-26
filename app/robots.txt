@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pornhub1.fun/sitemap/sitemap.xml
+Sitemap: https://pornhub1.fun/sitemap.xml

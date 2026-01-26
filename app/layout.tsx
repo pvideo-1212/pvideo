@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
-import Footer from '@/components/Footer'
+
+import SitemapUpdater from '@/components/SitemapUpdater'
+import Footer from '@/components/Footer' // Assuming Footer is needed and imported
 
 const inter = Inter({
   subsets: ['latin'],
@@ -140,9 +142,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="font-sans antialiased min-h-screen bg-[#0a0a0a] text-white flex flex-col" suppressHydrationWarning>
-        <div className="flex-1">
-          {children}
-        </div>
+        {children}
+        <SitemapUpdater />
         <Footer />
       </body>
     </html>
