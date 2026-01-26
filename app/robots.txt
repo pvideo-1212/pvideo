@@ -1,4 +1,14 @@
 User-agent: *
-Allow: /
+Allow: /Search
+Allow: /Models
+Allow: /Channels
+Allow: /Video
+Allow: /Categories
+Allow: /About
+Allow: /Terms
+Allow: /Privacy
+Allow: /*
 
 Sitemap: https://pornhub1.fun/sitemap/sitemap.xml
+Sitemap: https://pornhub1.fun/sitemap/video-sitemap.xml
+Sitemap: https://pornhub1.fun/sitemap.xml
