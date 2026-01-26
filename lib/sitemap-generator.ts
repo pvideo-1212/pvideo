@@ -5,7 +5,7 @@ import { scrapeVideoList, scrapeModels, scrapeChannels } from './scraper/scraper
 
 const BASE_URL = 'https://pornhub1.fun';
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const SITEMAP_PATH = path.join(PUBLIC_DIR, 'sitemap.xml');
+const SITEMAP_PATH = path.join(PUBLIC_DIR, 'sitemap-internal.xml');
 const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
 export async function generateSitemap(force: boolean = false) {
