@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: 'Free HD Porn Videos - Pornhub1 | Premium Adult Streaming',
     template: '%s | Pornhub1 - Free HD Porn',
   },
-  description: 'Watch millions of free HD porn videos on Pornhub1. No registration required. Stream full-length amateur and professional sex clips with no ads. High quality, fast streaming.',
+  description: 'Watch Pornhub 1 porn videos for free, here on Pornhub.com. Discover the growing collection of high quality Most Relevant XXX movies and clips.',
   keywords: [
     'free hd porn', 'amateur couples', 'professional porn', 'full length sex movies',
     'vr porn', '4k adult videos', 'mobile porn', 'hot sex clips',
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     'uncensored videos', 'exclusive amateur', 'reality porn', 'step fantasy',
     'milf videos', 'lesbian sex', 'anal porn', 'blowjob videos', 'cumshot compilation'
   ],
-  authors: [{ name: 'TubeX Team' }],
-  creator: 'TubeX',
-  publisher: 'TubeX',
+  authors: [{ name: 'Pornhub1 Team' }],
+  creator: 'Pornhub1',
+  publisher: 'Pornhub1',
   robots: {
     index: true,
     follow: true,
